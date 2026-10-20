@@ -54,7 +54,7 @@ export function RoomShape({ piece: p, shape: s, thumb = false }: Props) {
             y1={h ? Y : Y - 0.45}
             x2={h ? X + 0.45 : X}
             y2={h ? Y : Y + 0.45}
-            stroke="var(--yellow)"
+            stroke="var(--ext)"
             stroke-width=".14"
             stroke-dasharray=".12 .08"
           />

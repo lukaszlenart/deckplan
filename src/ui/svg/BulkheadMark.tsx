@@ -22,26 +22,29 @@ export function BulkheadMark({ edge, type, hasRoom }: Props) {
   if (type === 'open') {
     mark = hasRoom ? null : <circle cx={cx} cy={cy} r=".05" fill="var(--corr-edge)" opacity=".7" />
   } else if (type === 'door') {
-    mark = bar(0.42, 0.09, 'var(--ink)')
+    mark = bar(0.42, 0.09, 'var(--bh-door)')
   } else if (type === 'bulkhead') {
-    mark = bar(0.5, 0.16, 'var(--accent)', { stroke: 'var(--ink)', 'stroke-width': '.03' })
+    mark = bar(0.5, 0.16, 'var(--bh-pressure)', {
+      stroke: 'var(--bh-pressure-edge)',
+      'stroke-width': '.03',
+    })
   } else if (type === 'airlock') {
     const shift = vertical
       ? ['translate(-.07 0)', 'translate(.07 0)']
       : ['translate(0 -.07)', 'translate(0 .07)']
     mark = (
       <>
-        {bar(0.5, 0.07, 'var(--yellow)', { transform: shift[0] ?? '' })}
-        {bar(0.5, 0.07, 'var(--yellow)', { transform: shift[1] ?? '' })}
+        {bar(0.5, 0.07, 'var(--bh-airlock)', { transform: shift[0] ?? '' })}
+        {bar(0.5, 0.07, 'var(--bh-airlock)', { transform: shift[1] ?? '' })}
       </>
     )
   } else {
     mark = (
       <>
-        {bar(0.5, 0.16, 'var(--bad)')}
+        {bar(0.5, 0.16, 'var(--bh-welded)')}
         <path
           d={`M${cx - 0.12} ${cy - 0.12}L${cx + 0.12} ${cy + 0.12}M${cx + 0.12} ${cy - 0.12}L${cx - 0.12} ${cy + 0.12}`}
-          stroke="var(--board)"
+          stroke="var(--bh-welded-mark)"
           stroke-width=".04"
         />
       </>

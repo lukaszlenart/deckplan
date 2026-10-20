@@ -48,10 +48,13 @@ pure functions (`domain/`, `storage/`, `ui/pointer.ts`, `ui/store.ts`) so it is 
   `beginBulkheadDrag`, `moveDrag`, `rotateDrag`, `resolveDrop`) plus `cellAt`/`nearestEdge`;
   `Board.tsx` wires it to pointer events. `shortcuts.ts` maps keys. `svg/` holds the JSX shape
   helpers shared by the board, the ghost preview and palette thumbnails.
-- `src/styles/app.css` — the editor stylesheet; light/dark via `prefers-color-scheme` and
-  `data-theme`, with the dark tokens under `@media screen` so print always gets the light set;
-  stacks under 760px. `print.css` hides the editor and shows `ui/PrintSheet.tsx`, which draws
-  the plan through the same `svg/PlanDrawing.tsx` as the board, cropped by `planBounds`.
+- `src/styles/app.css` — the editor stylesheet. The screen palette in `:root` is the dark
+  terminal look of the Hadley's Hope map (one theme, no light/dark switch); stacks under 760px.
+  `print.css` redefines the same tokens with the light paper palette, hides the editor and shows
+  `ui/PrintSheet.tsx`, which draws the plan through the same `svg/PlanDrawing.tsx` as the board,
+  cropped by `planBounds`. Components use role tokens (`--bh-door`, `--bh-pressure`,
+  `--bh-airlock`, `--bh-welded`, `--ext`, `--hab`/`--ops`/`--tech`), never raw colours, so both
+  palettes stay complete; a token added to one must be added to the other.
 - `src/pwa/` — hand-written `sw.js`; a plugin in `vite.config.ts` prepends the precache list and
   a content-hashed cache name at build time. Registered only in production builds.
 
