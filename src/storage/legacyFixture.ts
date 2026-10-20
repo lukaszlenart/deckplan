@@ -1,0 +1,28 @@
+/** `examples/kestrel-4.json` as written by the single-file version of the app. */
+export const LEGACY_KESTREL = {
+  name: 'Placówka Kestrel-4',
+  pieces: [
+    { id: 1, t: 'K1', x: 4, y: 8, r: 1 },
+    { id: 2, t: 'K3', x: 5, y: 8, r: 3 },
+    { id: 3, t: 'K1', x: 6, y: 8, r: 1 },
+    { id: 4, t: 'K3', x: 7, y: 8, r: 1 },
+    { id: 5, t: 'K1', x: 8, y: 8, r: 1 },
+    { id: 6, t: 'K1', x: 9, y: 8, r: 1 },
+    { id: 7, t: 'K3', x: 10, y: 8, r: 3 },
+    { id: 8, t: 'K1', x: 11, y: 8, r: 1 },
+    { id: 9, t: 'K1', x: 12, y: 8, r: 1 },
+    { id: 10, t: 'K3', x: 13, y: 8, r: 1 },
+    { id: 11, t: 'K7', x: 14, y: 8, r: 1 },
+    { id: 12, t: 'K5', x: 15, y: 7, r: 0 },
+    { id: 13, t: 'K6', x: 16, y: 6, r: 2 },
+    { id: 14, t: 'K2', x: 3, y: 8, r: 1 },
+    { id: 15, t: 'K1', x: 3, y: 9, r: 0 },
+    { id: 16, t: 'M1', x: 5, y: 7, r: 0 },
+    { id: 17, t: 'T1', x: 6, y: 9, r: 0 },
+    { id: 18, t: 'O1', x: 9, y: 6, r: 0 },
+    { id: 19, t: 'O3', x: 12, y: 9, r: 2 },
+    { id: 20, t: 'M2', x: 2, y: 10, r: 2 },
+    { id: 21, t: 'T3', x: 16, y: 5, r: 0 },
+  ],
+  doors: { '7,8,S': 'grodz', '16,5,S': 'sluza', '3,9,S': 'grodz' },
+}

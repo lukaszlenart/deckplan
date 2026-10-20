@@ -1,0 +1,96 @@
+import { moduleDef } from './catalogue'
+import { DX, DY, edgeKey, opposite, shape } from './geometry'
+import type { BulkheadType, Dir, EdgeKey, ModuleId, Plan, Rotation } from './types'
+import { GRID } from './types'
+
+export interface EdgeInfo {
+  hasRoom: boolean
+}
+
+export interface OpenPort {
+  x: number
+  y: number
+  dir: Dir
+  room: boolean
+}
+
+export interface Analysis {
+  edges: Map<EdgeKey, EdgeInfo>
+  open: OpenPort[]
+  fragments: number
+}
+
+/** Map of "x,y" → piece id for every occupied cell. */
+export function occupancy(plan: Plan, ignoreId?: number): Map<string, number> {
+  const occ = new Map<string, number>()
+  for (const p of plan.pieces) {
+    if (p.id === ignoreId) continue
+    for (const [cx, cy] of shape(p.module, p.r).cells) occ.set(`${p.x + cx},${p.y + cy}`, p.id)
+  }
+  return occ
+}
+
+export function canPlace(
+  plan: Plan,
+  id: ModuleId,
+  r: Rotation,
+  x: number,
+  y: number,
+  ignoreId?: number,
+): boolean {
+  const occ = occupancy(plan, ignoreId)
+  return shape(id, r).cells.every(([cx, cy]) => {
+    const X = x + cx
+    const Y = y + cy
+    return X >= 0 && Y >= 0 && X < GRID.width && Y < GRID.height && !occ.has(`${X},${Y}`)
+  })
+}
+
+export function analyze(plan: Plan): Analysis {
+  const isRoom = new Map(plan.pieces.map((p) => [p.id, moduleDef(p.module).kind === 'room']))
+  const portMap = new Map<string, number>()
+  for (const p of plan.pieces) {
+    for (const [x, y, d] of shape(p.module, p.r).ports) {
+      portMap.set(`${p.x + x},${p.y + y},${d}`, p.id)
+    }
+  }
+  const parent = new Map(plan.pieces.map((p) => [p.id, p.id]))
+  const find = (a: number): number => {
+    let root = a
+    while (parent.get(root) !== root) root = parent.get(root) ?? root
+    parent.set(a, root)
+    return root
+  }
+  const edges = new Map<EdgeKey, EdgeInfo>()
+  const open: OpenPort[] = []
+  for (const [key, pid] of portMap) {
+    const [x, y, d] = key.split(',').map(Number) as [number, number, Dir]
+    const nx = x + (DX[d] ?? 0)
+    const ny = y + (DY[d] ?? 0)
+    const other = portMap.get(`${nx},${ny},${opposite(d)}`)
+    if (other !== undefined && other !== pid) {
+      parent.set(find(pid), find(other))
+      const ek = edgeKey(x, y, d)
+      if (ek && !edges.has(ek)) {
+        edges.set(ek, { hasRoom: isRoom.get(pid) === true || isRoom.get(other) === true })
+      }
+    } else {
+      open.push({ x, y, dir: d, room: isRoom.get(pid) === true })
+    }
+  }
+  const roots = new Set(plan.pieces.map((p) => find(p.id)))
+  return { edges, open, fragments: roots.size }
+}
+
+export function bulkheadAt(plan: Plan, key: EdgeKey, info: EdgeInfo): BulkheadType {
+  return plan.bulkheads[key] ?? (info.hasRoom ? 'door' : 'open')
+}
+
+/** Returns a plan without bulkheads whose edge no longer exists. */
+export function pruneBulkheads(plan: Plan): Plan {
+  const { edges } = analyze(plan)
+  const bulkheads: Plan['bulkheads'] = {}
+  for (const [key, type] of Object.entries(plan.bulkheads))
+    if (edges.has(key)) bulkheads[key] = type
+  return { ...plan, bulkheads }
+}
