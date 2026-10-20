@@ -37,10 +37,12 @@
 ### Task 1: Project scaffold
 
 **Files:**
+
 - Create: `package.json`, `.nvmrc`, `.gitignore`, `.prettierrc.json`, `.prettierignore`, `tsconfig.json`, `eslint.config.js`, `vite.config.ts`, `index.html`, `src/main.tsx`, `src/ui/App.tsx`, `src/styles/app.css`
 - Delete: the old root `index.html` (replaced by the Vite entry)
 
 **Interfaces:**
+
 - Produces: scripts `dev`, `build`, `preview`, `test`, `test:watch`, `typecheck`, `lint`, `format`; `src/main.tsx` renders `<App />` into `#app`.
 
 - [ ] **Step 1: Copy config files from `../crew-manifest`**
@@ -91,9 +93,11 @@ git commit -m "chore: scaffold Vite + TypeScript + Preact project"
 ### Task 2: Domain types and catalogue
 
 **Files:**
+
 - Create: `src/domain/types.ts`, `src/domain/catalogue.ts`, `src/domain/catalogue.test.ts`
 
 **Interfaces:**
+
 - Produces: every type from spec §2 (`Lang`, `LANGS`, `Localized`, `Dir`, `Rotation`, `Cell`, `Port`, `ModuleId`, `RoomClass`, `ModuleDef`, `ModuleGroup`, `BulkheadType`, `BULKHEAD_TYPES`, `EdgeKey`, `Piece`, `Plan`, `GRID`); `MODULES: Readonly<Record<ModuleId, ModuleDef>>`, `GROUPS: readonly ModuleGroup[]`, `moduleDef(id: ModuleId): ModuleDef` (throws on unknown id), `isModuleId(value: unknown): value is ModuleId`.
 
 - [ ] **Step 1: Write `src/domain/types.ts`**
@@ -145,9 +149,11 @@ git commit -m "feat(domain): add plan types and module catalogue"
 ### Task 3: Geometry
 
 **Files:**
+
 - Create: `src/domain/geometry.ts`, `src/domain/geometry.test.ts`
 
 **Interfaces:**
+
 - Consumes: `MODULES`, `moduleDef` (Task 2).
 - Produces: `DX: readonly number[]`, `DY: readonly number[]` (index = `Dir`, north first, clockwise), `opposite(d: Dir): Dir`, `rotateDir(d: Dir): Dir` (+2 mod 8), `nextRotation(r: Rotation): Rotation`, `interface Shape { cells: Cell[]; ports: Port[]; ext: Port[]; w: number; h: number }`, `shape(id: ModuleId, r: Rotation): Shape` (memoized), `edgeKey(x: number, y: number, d: Dir): EdgeKey | null`, `edgeCenter(key: EdgeKey): [number, number]`, `portPoint(x: number, y: number, d: Dir): [number, number]` (cell centre plus half a cell towards `d`), `placementOffset(id: ModuleId, r: Rotation): [number, number]` (`[floor((w-1)/2), floor((h-1)/2)]`).
 
@@ -197,9 +203,11 @@ Rotation: for each of `r` turns, `rot = ([x, y]) => [h - 1 - y, x]`, ports/ext g
 ### Task 4: Analysis
 
 **Files:**
+
 - Create: `src/domain/analysis.ts`, `src/domain/analysis.test.ts`, `src/domain/testing.ts`, `src/domain/sample.ts`
 
 **Interfaces:**
+
 - Consumes: Task 2 types, Task 3 `shape`, `edgeKey`, `DX`, `DY`, `opposite`.
 - Produces:
   - `occupancy(plan: Plan, ignoreId?: number): Map<string, number>` keyed `"x,y"`.
@@ -251,9 +259,11 @@ it('samplePlan is placeable and connected', () => {
 ### Task 5: i18n
 
 **Files:**
+
 - Create: `src/i18n/index.ts`, `src/i18n/en.ts`, `src/i18n/pl.ts`, `src/i18n/i18n.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Lang`, `LANGS`, `Localized` (Task 2).
 - Produces: as `../crew-manifest/src/i18n/index.ts` (`MessageKey`, `Messages`, `Params`, `TFunction`, `isLang`, `detectLang`, `translate`, `lang` signal, `setLang`, `useT`, `useLocalize`) with `STORAGE_KEY = 'deckplan/lang'`, plus `translatePlural(l: Lang, key: string, n: number): string` which translates `` `${key}.${new Intl.PluralRules(l).select(n)}` `` with `{ count: n }`, and `usePlural(): (key: string, n: number) => string`.
 
@@ -277,45 +287,45 @@ it('picks Polish plural forms', () => {
 
 `index.ts` is crew-manifest's file with the storage key changed and `translatePlural`/`usePlural` added. `en.ts` keys and English copy (Polish copy from `git show main:index.html`):
 
-| key | en |
-| --- | --- |
-| `app.title` | Deckplan |
-| `lang.label` | Language |
-| `header.stationName` | Station name |
-| `header.undo` / `header.undoTitle` | Undo / Undo (Ctrl+Z) |
-| `header.json` | Save / load JSON |
-| `header.clear` | Clear plan |
-| `storage.writeError` | Could not save to browser storage. Copy the JSON before closing this tab. |
-| `palette.bulkheads` | Bulkheads |
-| `palette.bulkheadHint` | A bulkhead sits on a connection: where a corridor meets a room or another corridor. Pick a type and click the connections marked with circles, or drag a type onto a connection. Keys 1–5 pick a type. |
-| `palette.selection` | Selection |
-| `bulkhead.open` / `.door` / `.bulkhead` / `.airlock` / `.welded` | Open passage / Door / Pressure bulkhead / Airlock / Welded shut |
-| `bulkhead.title` | {name} (click to change) |
-| `inspector.connectionRoom` / `inspector.connectionCorridor` | room – corridor connection / corridor – corridor connection |
-| `inspector.placingBulkhead` | Placing: {name} |
-| `inspector.placingBulkheadHint` | Click a connection marked with a circle. You can keep clicking. Esc finishes. |
-| `inspector.finish` / `inspector.cancel` | Finish / Cancel |
-| `inspector.rotate` / `inspector.delete` | Rotate 90° / Delete |
-| `inspector.rotation` | rotation {deg}° |
-| `inspector.placeHint` | Click the grid to place it. R rotates, Esc cancels. |
-| `inspector.defaultHint` | Drag a module from the catalogue onto the grid, or click it and pick a spot. Click an element on the plan to select it. R rotates while dragging. Click a bulkhead on the plan to change its type. |
-| `unit.cell.one` / `.few` / `.many` / `.other` | {count} cell / {count} cells / {count} cells / {count} cells (pl: {count} pole / {count} pola / {count} pól / {count} pola) |
-| `status.rooms` / `.corridors` / `.cells` / `.openEnds` / `.fragments` | Rooms / Corridors / Cells / Open ends / Detached fragments |
-| `status.zoomOut` / `status.zoomIn` | Zoom out / Zoom in |
-| `toast.noFit` | It does not fit here: cell taken or outside the plan. |
-| `toast.noFitShort` | It does not fit here. |
-| `toast.noRotate` | No room to rotate. Move the module and try again. |
-| `toast.dropOnConnection` | Drop the bulkhead on a connection marked with a circle. |
-| `toast.noConnection` | No connection here. Click a circle between two modules. |
-| `toast.cleared` | Plan cleared. "Undo" brings it back. |
-| `toast.copied` | JSON copied. |
-| `toast.selectedText` | Text selected. Copy it with the keyboard shortcut. |
-| `toast.loaded` | Plan loaded. |
-| `toast.invalidJson` | Not a plan. Check that the pasted text is the whole JSON. |
-| `dialog.title` | Station plan as JSON |
-| `dialog.hint` | Copy the text to keep the plan. To load another plan, paste its JSON and choose "Load". |
-| `dialog.copy` / `dialog.load` / `dialog.close` | Copy / Load / Close |
-| `sample.name` | Kestrel-4 Outpost (pl: Placówka Kestrel-4) |
+| key                                                                   | en                                                                                                                                                                                                     |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app.title`                                                           | Deckplan                                                                                                                                                                                               |
+| `lang.label`                                                          | Language                                                                                                                                                                                               |
+| `header.stationName`                                                  | Station name                                                                                                                                                                                           |
+| `header.undo` / `header.undoTitle`                                    | Undo / Undo (Ctrl+Z)                                                                                                                                                                                   |
+| `header.json`                                                         | Save / load JSON                                                                                                                                                                                       |
+| `header.clear`                                                        | Clear plan                                                                                                                                                                                             |
+| `storage.writeError`                                                  | Could not save to browser storage. Copy the JSON before closing this tab.                                                                                                                              |
+| `palette.bulkheads`                                                   | Bulkheads                                                                                                                                                                                              |
+| `palette.bulkheadHint`                                                | A bulkhead sits on a connection: where a corridor meets a room or another corridor. Pick a type and click the connections marked with circles, or drag a type onto a connection. Keys 1–5 pick a type. |
+| `palette.selection`                                                   | Selection                                                                                                                                                                                              |
+| `bulkhead.open` / `.door` / `.bulkhead` / `.airlock` / `.welded`      | Open passage / Door / Pressure bulkhead / Airlock / Welded shut                                                                                                                                        |
+| `bulkhead.title`                                                      | {name} (click to change)                                                                                                                                                                               |
+| `inspector.connectionRoom` / `inspector.connectionCorridor`           | room – corridor connection / corridor – corridor connection                                                                                                                                            |
+| `inspector.placingBulkhead`                                           | Placing: {name}                                                                                                                                                                                        |
+| `inspector.placingBulkheadHint`                                       | Click a connection marked with a circle. You can keep clicking. Esc finishes.                                                                                                                          |
+| `inspector.finish` / `inspector.cancel`                               | Finish / Cancel                                                                                                                                                                                        |
+| `inspector.rotate` / `inspector.delete`                               | Rotate 90° / Delete                                                                                                                                                                                    |
+| `inspector.rotation`                                                  | rotation {deg}°                                                                                                                                                                                        |
+| `inspector.placeHint`                                                 | Click the grid to place it. R rotates, Esc cancels.                                                                                                                                                    |
+| `inspector.defaultHint`                                               | Drag a module from the catalogue onto the grid, or click it and pick a spot. Click an element on the plan to select it. R rotates while dragging. Click a bulkhead on the plan to change its type.     |
+| `unit.cell.one` / `.few` / `.many` / `.other`                         | {count} cell / {count} cells / {count} cells / {count} cells (pl: {count} pole / {count} pola / {count} pól / {count} pola)                                                                            |
+| `status.rooms` / `.corridors` / `.cells` / `.openEnds` / `.fragments` | Rooms / Corridors / Cells / Open ends / Detached fragments                                                                                                                                             |
+| `status.zoomOut` / `status.zoomIn`                                    | Zoom out / Zoom in                                                                                                                                                                                     |
+| `toast.noFit`                                                         | It does not fit here: cell taken or outside the plan.                                                                                                                                                  |
+| `toast.noFitShort`                                                    | It does not fit here.                                                                                                                                                                                  |
+| `toast.noRotate`                                                      | No room to rotate. Move the module and try again.                                                                                                                                                      |
+| `toast.dropOnConnection`                                              | Drop the bulkhead on a connection marked with a circle.                                                                                                                                                |
+| `toast.noConnection`                                                  | No connection here. Click a circle between two modules.                                                                                                                                                |
+| `toast.cleared`                                                       | Plan cleared. "Undo" brings it back.                                                                                                                                                                   |
+| `toast.copied`                                                        | JSON copied.                                                                                                                                                                                           |
+| `toast.selectedText`                                                  | Text selected. Copy it with the keyboard shortcut.                                                                                                                                                     |
+| `toast.loaded`                                                        | Plan loaded.                                                                                                                                                                                           |
+| `toast.invalidJson`                                                   | Not a plan. Check that the pasted text is the whole JSON.                                                                                                                                              |
+| `dialog.title`                                                        | Station plan as JSON                                                                                                                                                                                   |
+| `dialog.hint`                                                         | Copy the text to keep the plan. To load another plan, paste its JSON and choose "Load".                                                                                                                |
+| `dialog.copy` / `dialog.load` / `dialog.close`                        | Copy / Load / Close                                                                                                                                                                                    |
+| `sample.name`                                                         | Kestrel-4 Outpost (pl: Placówka Kestrel-4)                                                                                                                                                             |
 
 - [ ] **Step 4: Run tests and lint** — PASS, clean.
 
@@ -326,10 +336,12 @@ it('picks Polish plural forms', () => {
 ### Task 6: Storage
 
 **Files:**
+
 - Create: `src/storage/repository.ts`, `src/storage/schema.ts`, `src/storage/schema.test.ts`, `src/storage/migrate.ts`, `src/storage/migrate.test.ts`, `src/storage/memoryStorage.ts`, `src/storage/localStorageRepo.ts`, `src/storage/localStorageRepo.test.ts`, `src/storage/backup.ts`, `src/storage/backup.test.ts`
 - Modify: `examples/kestrel-4.json` (convert to the new format, name `Kestrel-4 Outpost`)
 
 **Interfaces:**
+
 - Consumes: `Plan`, `BULKHEAD_TYPES`, `isModuleId` (Task 2); `canPlace`, `analyze`, `pruneBulkheads`, `makePlan`, `samplePlan` (Task 4).
 - Produces:
   - `repository.ts`: `interface PlanRepository { load(): Plan | undefined; save(plan: Plan): void }`, `class StorageError extends Error`.
@@ -370,40 +382,89 @@ Run a one-off `npx tsx`/`node` script that reads the file, applies `migrate`, se
 ### Task 7: UI store
 
 **Files:**
+
 - Create: `src/ui/store.ts`, `src/ui/store.test.ts`
 
 **Interfaces:**
+
 - Consumes: Task 2–6 exports; `MessageKey`, `Params`, `lang`, `translate` (Task 5).
 - Produces: `CELL`, `ZOOMS`, `HISTORY_LIMIT = 60`;
 
 ```ts
 export type DragState =
-  | { kind: 'new'; module: ModuleId; r: Rotation; off: [number, number]; sx: number; sy: number; moved: boolean; over: boolean; gx: number; gy: number }
-  | { kind: 'move'; id: number; module: ModuleId; r: Rotation; off: [number, number]; sx: number; sy: number; moved: boolean; over: boolean; gx: number; gy: number }
-  | { kind: 'bulkhead'; type: BulkheadType; sx: number; sy: number; moved: boolean; edge: EdgeKey | null }
+  | {
+      kind: 'new'
+      module: ModuleId
+      r: Rotation
+      off: [number, number]
+      sx: number
+      sy: number
+      moved: boolean
+      over: boolean
+      gx: number
+      gy: number
+    }
+  | {
+      kind: 'move'
+      id: number
+      module: ModuleId
+      r: Rotation
+      off: [number, number]
+      sx: number
+      sy: number
+      moved: boolean
+      over: boolean
+      gx: number
+      gy: number
+    }
+  | {
+      kind: 'bulkhead'
+      type: BulkheadType
+      sx: number
+      sy: number
+      moved: boolean
+      edge: EdgeKey | null
+    }
 
 export interface Store {
-  plan: Signal<Plan>; analysis: ReadonlySignal<Analysis>; canUndo: Signal<boolean>
-  selected: Signal<number | null>; selectedEdge: Signal<EdgeKey | null>
-  pending: Signal<{ module: ModuleId; r: Rotation } | null>; bulkheadTool: Signal<BulkheadType | null>
-  zoom: Signal<number>; drag: Signal<DragState | null>; hoverCell: Signal<Cell | null>; hoverEdge: Signal<EdgeKey | null>
-  toast: Signal<{ id: number; key: MessageKey; params?: Params } | null>; storageError: Signal<boolean>
-  placePiece(module: ModuleId, r: Rotation, x: number, y: number): boolean   // false + toast.noFit
-  movePiece(id: number, x: number, y: number, r: Rotation): boolean          // false + toast.noFitShort; prunes bulkheads
-  rotateSelected(): void            // toast.noRotate when blocked
+  plan: Signal<Plan>
+  analysis: ReadonlySignal<Analysis>
+  canUndo: Signal<boolean>
+  selected: Signal<number | null>
+  selectedEdge: Signal<EdgeKey | null>
+  pending: Signal<{ module: ModuleId; r: Rotation } | null>
+  bulkheadTool: Signal<BulkheadType | null>
+  zoom: Signal<number>
+  drag: Signal<DragState | null>
+  hoverCell: Signal<Cell | null>
+  hoverEdge: Signal<EdgeKey | null>
+  toast: Signal<{ id: number; key: MessageKey; params?: Params } | null>
+  storageError: Signal<boolean>
+  placePiece(module: ModuleId, r: Rotation, x: number, y: number): boolean // false + toast.noFit
+  movePiece(id: number, x: number, y: number, r: Rotation): boolean // false + toast.noFitShort; prunes bulkheads
+  rotateSelected(): void // toast.noRotate when blocked
   deleteSelected(): void
-  setBulkhead(key: EdgeKey, type: BulkheadType): void   // ignored when key not in analysis.edges; toasts bulkhead.<type>
-  clearPlan(): void                 // no-op on empty plan; toast.cleared
+  setBulkhead(key: EdgeKey, type: BulkheadType): void // ignored when key not in analysis.edges; toasts bulkhead.<type>
+  clearPlan(): void // no-op on empty plan; toast.cleared
   undo(): void
   renameStation(name: string): void // persists, no snapshot
-  loadPlan(plan: Plan): void        // snapshot, replace, clear selection
-  selectPiece(id: number | null): void; selectEdge(key: EdgeKey | null): void
-  togglePending(module: ModuleId): void; rotatePending(): void; toggleBulkheadTool(type: BulkheadType): void
-  cancelAll(): void                 // drag, pending, selection, bulkhead tool, hover edge
-  zoomIn(): void; zoomOut(): void; showToast(key: MessageKey, params?: Params): void
+  loadPlan(plan: Plan): void // snapshot, replace, clear selection
+  selectPiece(id: number | null): void
+  selectEdge(key: EdgeKey | null): void
+  togglePending(module: ModuleId): void
+  rotatePending(): void
+  toggleBulkheadTool(type: BulkheadType): void
+  cancelAll(): void // drag, pending, selection, bulkhead tool, hover edge
+  zoomIn(): void
+  zoomOut(): void
+  showToast(key: MessageKey, params?: Params): void
 }
-export function createStore(repo: PlanRepository, sampleName: () => string, initialZoom?: number): Store
-export const store: Store   // createStore(new LocalStorageRepo(), () => translate(lang.value, 'sample.name'), window.innerWidth < 760 ? 1 : 3)
+export function createStore(
+  repo: PlanRepository,
+  sampleName: () => string,
+  initialZoom?: number,
+): Store
+export const store: Store // createStore(new LocalStorageRepo(), () => translate(lang.value, 'sample.name'), window.innerWidth < 760 ? 1 : 3)
 ```
 
 - [ ] **Step 1: Write the failing test**
@@ -437,24 +498,41 @@ Private `snapshot()` pushes `JSON.stringify(plan.value)` and trims to 60; `commi
 ### Task 8: Pointer maths and shortcuts
 
 **Files:**
+
 - Create: `src/ui/pointer.ts`, `src/ui/pointer.test.ts`, `src/ui/shortcuts.ts`, `src/ui/shortcuts.test.ts`
 
 **Interfaces:**
+
 - Consumes: `DragState` (Task 7), `edgeCenter`, `placementOffset`, `nextRotation` (Task 3), `GRID`.
 - Produces:
 
 ```ts
-export interface Point { x: number; y: number }
-export interface Box { left: number; top: number; right: number; bottom: number; width: number; height: number }
+export interface Point {
+  x: number
+  y: number
+}
+export interface Box {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+}
 export const DRAG_THRESHOLD = 5
 export const EDGE_SNAP = 0.6
-export function cellAt(board: Box, wrap: Box, p: Point): Cell | null      // null outside either box
+export function cellAt(board: Box, wrap: Box, p: Point): Cell | null // null outside either box
 export function nearestEdge(board: Box, edges: Iterable<EdgeKey>, p: Point): EdgeKey | null
 export function beginNewDrag(module: ModuleId, r: Rotation, p: Point): DragState
 export function beginMoveDrag(piece: Piece, grabCell: Cell, p: Point): DragState
 export function beginBulkheadDrag(type: BulkheadType, p: Point): DragState
-export function moveDrag(drag: DragState, p: Point, cell: Cell | null, edge: EdgeKey | null): DragState
-export function rotateDrag(drag: DragState): DragState   // 'new': re-centre on the new offset; 'move': rotation only; 'bulkhead': unchanged
+export function moveDrag(
+  drag: DragState,
+  p: Point,
+  cell: Cell | null,
+  edge: EdgeKey | null,
+): DragState
+export function rotateDrag(drag: DragState): DragState // 'new': re-centre on the new offset; 'move': rotation only; 'bulkhead': unchanged
 export type DropOutcome =
   | { kind: 'click' }
   | { kind: 'place'; module: ModuleId; r: Rotation; x: number; y: number }
@@ -493,10 +571,12 @@ it('resolveDrop: unmoved → click; moved over grid → place/move; bulkhead →
 ### Task 9: Components and styles
 
 **Files:**
+
 - Create: `src/ui/svg/RoomShape.tsx`, `src/ui/svg/CorridorLayer.tsx`, `src/ui/svg/BulkheadMark.tsx`, `src/ui/svg/ModuleThumb.tsx`, `src/ui/svg/Ghost.tsx`, `src/ui/Board.tsx`, `src/ui/Palette.tsx`, `src/ui/BulkheadPalette.tsx`, `src/ui/Inspector.tsx`, `src/ui/StatusBar.tsx`, `src/ui/JsonDialog.tsx`, `src/ui/Toast.tsx`, `src/ui/components/LangSwitch.tsx`
 - Modify: `src/ui/App.tsx`, `src/styles/app.css`
 
 **Interfaces:**
+
 - Consumes: `store` (Task 7), pointer and shortcut helpers (Task 8), `useT`, `useLocalize`, `usePlural`, `lang` (Task 5), svg geometry (Task 3), `exportPlan`/`importPlan` (Task 6).
 - Produces: a working app at `npm run dev`.
 
@@ -538,6 +618,7 @@ Run: `npm run dev` and in the browser check, in both languages: drag a module, c
 ### Task 10: PWA
 
 **Files:**
+
 - Create: `src/pwa/sw.js`, `src/pwa/precache.ts`, `src/pwa/precache.test.ts`, `public/manifest.webmanifest`, `public/icon.svg`, `public/icon-192.png`, `public/icon-512.png`
 - Modify: `vite.config.ts`, `src/main.tsx`, `index.html`
 
@@ -560,6 +641,7 @@ Run: `npm run dev` and in the browser check, in both languages: drag a module, c
 ### Task 11: CI, deploy, docs, repository
 
 **Files:**
+
 - Create: `.github/workflows/ci.yml`, `.github/workflows/deploy.yml`
 - Modify: `README.md`, `CLAUDE.md`
 

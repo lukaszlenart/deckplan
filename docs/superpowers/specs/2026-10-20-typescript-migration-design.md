@@ -88,40 +88,50 @@ export type Localized = Record<Lang, string>
 
 /** 0 = north, clockwise in 45° steps. Corridors use even values except the 45° pieces. */
 export type Dir = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7
-export type Rotation = 0 | 1 | 2 | 3            // multiples of 90° clockwise
+export type Rotation = 0 | 1 | 2 | 3 // multiples of 90° clockwise
 export type Cell = readonly [x: number, y: number]
 export type Port = readonly [x: number, y: number, dir: Dir]
 
-export type ModuleId = string                      // 'K1' … 'T3'
+export type ModuleId = string // 'K1' … 'T3'
 export type RoomClass = 'hab' | 'ops' | 'tech'
 
 export interface ModuleDef {
   id: ModuleId
-  code: string                                     // 'WY-K1'
+  code: string // 'WY-K1'
   kind: 'corridor' | 'room'
   name: Localized
-  short?: Localized                                // label drawn inside rooms
+  short?: Localized // label drawn inside rooms
   cls?: RoomClass
-  cells: readonly Cell[]                           // relative to top-left, rotation 0
+  cells: readonly Cell[] // relative to top-left, rotation 0
   ports: readonly Port[]
-  ext: readonly Port[]                             // external exits, drawn, never connect
+  ext: readonly Port[] // external exits, drawn, never connect
 }
 
-export interface ModuleGroup { id: string; label: Localized; modules: readonly ModuleId[] }
+export interface ModuleGroup {
+  id: string
+  label: Localized
+  modules: readonly ModuleId[]
+}
 
 export type BulkheadType = 'open' | 'door' | 'bulkhead' | 'airlock' | 'welded'
-export const BULKHEAD_TYPES: readonly BulkheadType[]   // palette and 1–5 key order
+export const BULKHEAD_TYPES: readonly BulkheadType[] // palette and 1–5 key order
 
 /** "x,y,E" (right edge of cell x,y) or "x,y,S" (bottom edge). Diagonals have no edge key. */
 export type EdgeKey = string
 
-export interface Piece { id: number; module: ModuleId; x: number; y: number; r: Rotation }
+export interface Piece {
+  id: number
+  module: ModuleId
+  x: number
+  y: number
+  r: Rotation
+}
 
 export interface Plan {
   schemaVersion: 1
   name: string
   pieces: Piece[]
-  bulkheads: Record<EdgeKey, BulkheadType>         // only explicitly set ones
+  bulkheads: Record<EdgeKey, BulkheadType> // only explicitly set ones
   nextId: number
 }
 
@@ -133,27 +143,27 @@ export const GRID = { width: 40, height: 28 } as const
 `MODULES: Record<ModuleId, ModuleDef>` and `GROUPS: ModuleGroup[]`, built with the same
 `corridor()` / `room()` / `rect()` helpers as today, with the same cells and ports. Names:
 
-| Group | Id | en | pl |
-| --- | --- | --- | --- |
-| Corridors / Korytarze | K1 | Straight corridor | Korytarz prosty |
-| | K2 | Corner 90° | Zakręt 90° |
-| | K3 | T-junction | Rozgałęzienie T |
-| | K4 | Crossing | Skrzyżowanie |
-| | K5 | Diagonal corridor 45° | Korytarz 45° |
-| | K6 | Diagonal transition (R) | Przejście na skos (P) |
-| | K7 | Diagonal transition (L) | Przejście na skos (L) |
-| | K8 | Diagonal corner | Zakręt skośny |
-| | K9 | End cap | Zaślepka |
-| Habitation / Mieszkalne | M1 | Cabin | Kajuta |
-| | M2 | Mess hall | Mesa |
-| | M3 | Sickbay | Ambulatorium |
-| Operations / Operacyjne | O1 | Bridge | Mostek |
-| | O2 | Laboratory (short: Lab) | Laboratorium (short: Lab.) |
-| | O3 | Storage | Magazyn |
-| | O4 | Hangar | Hangar |
-| Technical / Techniczne | T1 | Reactor | Reaktor |
-| | T2 | Hydroponics | Hydroponika |
-| | T3 | Airlock | Śluza |
+| Group                   | Id  | en                      | pl                         |
+| ----------------------- | --- | ----------------------- | -------------------------- |
+| Corridors / Korytarze   | K1  | Straight corridor       | Korytarz prosty            |
+|                         | K2  | Corner 90°              | Zakręt 90°                 |
+|                         | K3  | T-junction              | Rozgałęzienie T            |
+|                         | K4  | Crossing                | Skrzyżowanie               |
+|                         | K5  | Diagonal corridor 45°   | Korytarz 45°               |
+|                         | K6  | Diagonal transition (R) | Przejście na skos (P)      |
+|                         | K7  | Diagonal transition (L) | Przejście na skos (L)      |
+|                         | K8  | Diagonal corner         | Zakręt skośny              |
+|                         | K9  | End cap                 | Zaślepka                   |
+| Habitation / Mieszkalne | M1  | Cabin                   | Kajuta                     |
+|                         | M2  | Mess hall               | Mesa                       |
+|                         | M3  | Sickbay                 | Ambulatorium               |
+| Operations / Operacyjne | O1  | Bridge                  | Mostek                     |
+|                         | O2  | Laboratory (short: Lab) | Laboratorium (short: Lab.) |
+|                         | O3  | Storage                 | Magazyn                    |
+|                         | O4  | Hangar                  | Hangar                     |
+| Technical / Techniczne  | T1  | Reactor                 | Reaktor                    |
+|                         | T2  | Hydroponics             | Hydroponika                |
+|                         | T3  | Airlock                 | Śluza                      |
 
 Bulkhead labels: open → Open passage / Otwarte przejście, door → Door / Drzwi, bulkhead →
 Pressure bulkhead / Grodź ciśnieniowa, airlock → Airlock / Śluza powietrzna, welded → Welded

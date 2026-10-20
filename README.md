@@ -2,7 +2,7 @@
 
 Przeglądarkowy edytor planów stacji kosmicznych składanych z gotowych modułów na kwadratowej siatce. Powstał jako pomoc dla Mistrza Gry w sesjach RPG science fiction.
 
-*English summary below.*
+_English summary below._
 
 ## Uruchomienie
 
@@ -20,13 +20,13 @@ Cała aplikacja mieści się w pliku `index.html`. Nie wymaga instalacji, budowa
 
 ## Skróty klawiszowe
 
-| Klawisz | Działanie |
-|---|---|
-| `R` | obróć zaznaczony lub przeciągany moduł o 90° |
-| `Delete` / `Backspace` | usuń zaznaczony moduł |
-| `1`–`5` | wybierz typ grodzi albo zmień typ zaznaczonej grodzi |
-| `Esc` | anuluj wstawianie i zaznaczenie |
-| `Ctrl+Z` / `Cmd+Z` | cofnij |
+| Klawisz                | Działanie                                            |
+| ---------------------- | ---------------------------------------------------- |
+| `R`                    | obróć zaznaczony lub przeciągany moduł o 90°         |
+| `Delete` / `Backspace` | usuń zaznaczony moduł                                |
+| `1`–`5`                | wybierz typ grodzi albo zmień typ zaznaczonej grodzi |
+| `Esc`                  | anuluj wstawianie i zaznaczenie                      |
+| `Ctrl+Z` / `Cmd+Z`     | cofnij                                               |
 
 ## Format planu (JSON)
 
