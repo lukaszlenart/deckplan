@@ -2,7 +2,8 @@
 
 A browser editor for space station deck plans built from ready-made modules on a square grid.
 It was made as a game master aid for science fiction tabletop RPGs. It runs entirely in the
-browser: no backend, no account. The plan is stored in `localStorage`. The interface is
+browser: no backend, no account. On screen it uses a dark green terminal look inspired by the
+Hadley's Hope colony maps; printouts use light colours. The plan is stored in `localStorage`. The interface is
 available in English and Polish.
 
 ## Features

@@ -1,4 +1,34 @@
 @media print {
+  /* Paper palette: the original light colours. */
+  :root {
+    --bg: #ffffff;
+    --panel: #f7f9f9;
+    --board: #f3f6f6;
+    --ink: #1a2830;
+    --muted: #5a6b74;
+    --rule: #ccd6da;
+    --grid: #d5dee1;
+    --grid-major: #b9c7cc;
+    --accent: #d9591a;
+    --accent-ink: #ffffff;
+    --ok: #2f8a57;
+    --bad: #c0352b;
+    --corr: #aebbc1;
+    --corr-edge: #4a5c65;
+    --hab: #c9dce4;
+    --ops: #e3dcc8;
+    --tech: #e9cdb9;
+    --room-edge: #2a3b44;
+    --ext: #d8a21b;
+    --bh-door: #1a2830;
+    --bh-pressure: #d9591a;
+    --bh-pressure-edge: #1a2830;
+    --bh-airlock: #d8a21b;
+    --bh-welded: #c0352b;
+    --bh-welded-mark: #f3f6f6;
+    color-scheme: light;
+  }
+
   @page {
     size: A4 landscape;
     margin: 10mm;

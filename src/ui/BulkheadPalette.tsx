@@ -15,18 +15,27 @@ const ICONS: Record<BulkheadType, preact.JSX.Element> = {
       stroke-dasharray="3 3"
     />
   ),
-  door: <rect x="4" y="5" width="20" height="4" fill="var(--ink)" />,
-  bulkhead: <rect x="3" y="3.5" width="22" height="7" fill="var(--accent)" stroke="var(--ink)" />,
+  door: <rect x="4" y="5" width="20" height="4" fill="var(--bh-door)" />,
+  bulkhead: (
+    <rect
+      x="3"
+      y="3.5"
+      width="22"
+      height="7"
+      fill="var(--bh-pressure)"
+      stroke="var(--bh-pressure-edge)"
+    />
+  ),
   airlock: (
     <>
-      <rect x="3" y="2.5" width="22" height="3" fill="var(--yellow)" />
-      <rect x="3" y="8.5" width="22" height="3" fill="var(--yellow)" />
+      <rect x="3" y="2.5" width="22" height="3" fill="var(--bh-airlock)" />
+      <rect x="3" y="8.5" width="22" height="3" fill="var(--bh-airlock)" />
     </>
   ),
   welded: (
     <>
-      <rect x="3" y="3.5" width="22" height="7" fill="var(--bad)" />
-      <path d="M11 4.5l6 5M17 4.5l-6 5" stroke="var(--board)" stroke-width="1.5" />
+      <rect x="3" y="3.5" width="22" height="7" fill="var(--bh-welded)" />
+      <path d="M11 4.5l6 5M17 4.5l-6 5" stroke="var(--bh-welded-mark)" stroke-width="1.5" />
     </>
   ),
 }

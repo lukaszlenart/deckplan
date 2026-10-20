@@ -10,78 +10,37 @@ img {
 }
 
 /* Layout: drafting-table tool — catalogue sidebar on the left, blueprint sheet fills the rest; stacks on phones */
+/* Screen palette: the dark terminal look of the Hadley's Hope map. Paper colours live in print.css. */
 :root {
-  --bg: #e9eef0;
-  --panel: #f7f9f9;
-  --board: #f3f6f6;
-  --ink: #1a2830;
-  --muted: #5a6b74;
-  --rule: #ccd6da;
-  --grid: #d5dee1;
-  --grid-major: #b9c7cc;
-  --accent: #d9591a;
-  --accent-ink: #ffffff;
-  --yellow: #d8a21b;
-  --ok: #2f8a57;
-  --bad: #c0352b;
-  --corr: #aebbc1;
-  --corr-edge: #4a5c65;
-  --hab: #c9dce4;
-  --ops: #e3dcc8;
-  --tech: #e9cdb9;
-  --room-edge: #2a3b44;
+  --bg: #050a06;
+  --panel: #0a140c;
+  --board: #071009;
+  --ink: #9dffb8;
+  --muted: #4fa868;
+  --rule: #1d3f26;
+  --grid: #0f2415;
+  --grid-major: #1a3d24;
+  --accent: #6dff9e;
+  --accent-ink: #03140a;
+  --ok: #6dff9e;
+  --bad: #ff5a4f;
+  --corr: #0d2614;
+  --corr-edge: #6dff9e;
+  --hab: #123a20;
+  --ops: #1e4d2b;
+  --tech: #08170c;
+  --room-edge: #6dff9e;
+  --ext: #6dff9e;
+  --bh-door: #e0ffe8;
+  --bh-pressure: #6dff9e;
+  --bh-pressure-edge: #050a06;
+  --bh-airlock: #c8ffd6;
+  --bh-welded: #2f7a45;
+  --bh-welded-mark: #9dffb8;
   --f-display: 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
   --f-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
-}
-/* Dark colours are screen-only: print always uses the light set above. */
-@media screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #10181c;
-    --panel: #162127;
-    --board: #0d1417;
-    --ink: #dce6e9;
-    --muted: #8b9da5;
-    --rule: #26363e;
-    --grid: #1a272d;
-    --grid-major: #26373f;
-    --accent: #ee7434;
-    --accent-ink: #140b05;
-    --yellow: #e4b640;
-    --ok: #4fb57d;
-    --bad: #e5584c;
-    --corr: #3d4d55;
-    --corr-edge: #8fa3ac;
-    --hab: #22404d;
-    --ops: #3e3a2c;
-    --tech: #4a3022;
-    --room-edge: #a9bcc4;
-    color-scheme: dark;
-  }
-}
-@media screen {
-  :root[data-theme='dark'] {
-    --bg: #10181c;
-    --panel: #162127;
-    --board: #0d1417;
-    --ink: #dce6e9;
-    --muted: #8b9da5;
-    --rule: #26363e;
-    --grid: #1a272d;
-    --grid-major: #26373f;
-    --accent: #ee7434;
-    --accent-ink: #140b05;
-    --yellow: #e4b640;
-    --ok: #4fb57d;
-    --bad: #e5584c;
-    --corr: #3d4d55;
-    --corr-edge: #8fa3ac;
-    --hab: #22404d;
-    --ops: #3e3a2c;
-    --tech: #4a3022;
-    --room-edge: #a9bcc4;
-    color-scheme: dark;
-  }
+  color-scheme: dark;
 }
 html,
 body {
