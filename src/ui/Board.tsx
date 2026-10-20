@@ -1,0 +1,253 @@
+import { useEffect, useRef } from 'preact/hooks'
+import { bulkheadAt } from '../domain/analysis'
+import { moduleDef } from '../domain/catalogue'
+import { edgeCenter, placementOffset, portPoint, shape } from '../domain/geometry'
+import { GRID } from '../domain/types'
+import {
+  beginMoveDrag,
+  cellAt,
+  moveDrag,
+  nearestEdge,
+  resolveDrop,
+  rotateDrag,
+  type Box,
+} from './pointer'
+import { CELL, store, ZOOMS } from './store'
+import { BulkheadMark } from './svg/BulkheadMark'
+import { CorridorLayer } from './svg/CorridorLayer'
+import { Ghost } from './svg/Ghost'
+import { RoomShape } from './svg/RoomShape'
+
+const CLICK_SUPPRESS_MS = 50
+
+export function Board() {
+  const svgRef = useRef<SVGSVGElement>(null)
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const suppressClick = useRef(false)
+
+  const boxes = (): { board: Box; wrap: Box } | null => {
+    const svg = svgRef.current
+    const wrap = wrapRef.current
+    if (!svg || !wrap) return null
+    return { board: svg.getBoundingClientRect(), wrap: wrap.getBoundingClientRect() }
+  }
+  const suppressNextClick = () => {
+    suppressClick.current = true
+    setTimeout(() => (suppressClick.current = false), CLICK_SUPPRESS_MS)
+  }
+  const edgeUnder = (e: PointerEvent) => {
+    const b = boxes()
+    if (!b || !cellAt(b.board, b.wrap, e)) return null
+    return nearestEdge(b.board, store.analysis.value.edges.keys(), e)
+  }
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      const drag = store.drag.value
+      const b = boxes()
+      if (!b) return
+      if (!drag) {
+        if (e.pointerType !== 'mouse') return
+        if (store.pending.value) store.hoverCell.value = cellAt(b.board, b.wrap, e)
+        else if (store.bulkheadTool.value) store.hoverEdge.value = edgeUnder(e)
+        return
+      }
+      const cell = cellAt(b.board, b.wrap, e)
+      const next = moveDrag(drag, e, cell, cell ? edgeUnder(e) : null)
+      if (next.moved) e.preventDefault()
+      store.drag.value = next
+    }
+    const onUp = () => {
+      const drag = store.drag.value
+      if (!drag) return
+      store.drag.value = null
+      const drop = resolveDrop(drag)
+      if (drop.kind === 'click') {
+        if (drag.kind === 'bulkhead') store.toggleBulkheadTool(drag.type)
+        else if (drag.kind === 'new') store.togglePending(drag.module)
+        else store.selectPiece(drag.id)
+        return
+      }
+      suppressNextClick()
+      if (drop.kind === 'bulkhead') {
+        if (drop.edge) {
+          store.selectEdge(drop.edge)
+          store.setBulkhead(drop.edge, drop.type)
+        } else store.showToast('toast.dropOnConnection')
+      } else if (drop.kind === 'place') store.placePiece(drop.module, drop.r, drop.x, drop.y)
+      else if (drop.kind === 'move') store.movePiece(drop.id, drop.x, drop.y, drop.r)
+    }
+    const onCancel = () => (store.drag.value = null)
+    window.addEventListener('pointermove', onMove, { passive: false })
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onCancel)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onCancel)
+    }
+  }, [])
+
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (wrap) wrap.scrollTop = Math.max(0, 3 * CELL * (ZOOMS[store.zoom.value] ?? 1))
+  }, [])
+
+  const onPointerDown = (e: PointerEvent) => {
+    const target = e.target as Element | null
+    if (store.bulkheadTool.value) {
+      e.preventDefault()
+      suppressNextClick()
+      const edge = edgeUnder(e)
+      if (edge) store.setBulkhead(edge, store.bulkheadTool.value)
+      else store.showToast('toast.noConnection')
+      return
+    }
+    const edgeEl = target?.closest<SVGElement>('[data-edge]')
+    if (edgeEl?.dataset.edge) {
+      e.preventDefault()
+      suppressNextClick()
+      store.selectEdge(edgeEl.dataset.edge)
+      return
+    }
+    const pieceEl = target?.closest<SVGElement>('[data-id]')
+    if (pieceEl?.dataset.id) {
+      e.preventDefault()
+      const piece = store.plan.value.pieces.find((p) => p.id === Number(pieceEl.dataset.id))
+      const b = boxes()
+      if (!piece || !b) return
+      const cell = cellAt(b.board, b.wrap, e) ?? [piece.x, piece.y]
+      store.drag.value = beginMoveDrag(piece, cell, e)
+    }
+  }
+
+  const onClick = (e: MouseEvent) => {
+    const target = e.target as Element | null
+    if (store.bulkheadTool.value || suppressClick.current) return
+    if (target?.closest('[data-id],[data-edge]')) return
+    const b = boxes()
+    const cell = b && cellAt(b.board, b.wrap, e)
+    if (!cell) return
+    const pending = store.pending.value
+    if (pending) {
+      const [ox, oy] = placementOffset(pending.module, pending.r)
+      store.placePiece(pending.module, pending.r, cell[0] - ox, cell[1] - oy)
+    } else if (store.selected.value != null || store.selectedEdge.value) {
+      store.selectPiece(null)
+      store.selectEdge(null)
+    }
+  }
+
+  const onContextMenu = (e: MouseEvent) => {
+    const drag = store.drag.value
+    if (drag?.moved) {
+      e.preventDefault()
+      store.drag.value = rotateDrag(drag)
+    }
+  }
+
+  const plan = store.plan.value
+  const { edges, open } = store.analysis.value
+  const z = ZOOMS[store.zoom.value] ?? 1
+  const selected = plan.pieces.find((p) => p.id === store.selected.value)
+  const selectedEdge = store.selectedEdge.value
+  const ring = selectedEdge && edges.has(selectedEdge) ? edgeCenter(selectedEdge) : null
+
+  return (
+    <div id="boardWrap" ref={wrapRef}>
+      <svg
+        id="board"
+        ref={svgRef}
+        xmlns="http://www.w3.org/2000/svg"
+        class={store.bulkheadTool.value ? 'doormode' : ''}
+        viewBox={`0 0 ${GRID.width} ${GRID.height}`}
+        width={GRID.width * CELL * z}
+        height={GRID.height * CELL * z}
+        onPointerDown={onPointerDown}
+        onClick={onClick}
+        onContextMenu={onContextMenu}
+        onPointerLeave={() => {
+          if (!store.drag.value) store.hoverCell.value = null
+        }}
+      >
+        <defs>
+          <pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse">
+            <path d="M1 0H0V1" fill="none" stroke="var(--grid)" stroke-width=".025" />
+          </pattern>
+          <pattern id="g5" width="5" height="5" patternUnits="userSpaceOnUse">
+            <path d="M5 0H0V5" fill="none" stroke="var(--grid-major)" stroke-width=".04" />
+          </pattern>
+        </defs>
+        <rect data-bg="1" width={GRID.width} height={GRID.height} fill="var(--board)" />
+        <rect width={GRID.width} height={GRID.height} fill="url(#g1)" pointer-events="none" />
+        <rect width={GRID.width} height={GRID.height} fill="url(#g5)" pointer-events="none" />
+        <g>
+          {plan.pieces
+            .filter((p) => moduleDef(p.module).kind === 'room')
+            .map((p) => (
+              <g key={p.id} class="piece" data-id={p.id}>
+                <RoomShape piece={p} shape={shape(p.module, p.r)} />
+              </g>
+            ))}
+        </g>
+        <CorridorLayer pieces={plan.pieces} />
+        <g>
+          {[...edges].map(([key, info]) => (
+            <BulkheadMark
+              key={key}
+              edge={key}
+              type={bulkheadAt(plan, key, info)}
+              hasRoom={info.hasRoom}
+            />
+          ))}
+        </g>
+        <g pointer-events="none">
+          {open.map((o) => {
+            const [X, Y] = portPoint(o.x, o.y, o.dir)
+            return o.room ? (
+              <circle
+                key={`${o.x},${o.y},${o.dir}`}
+                cx={X}
+                cy={Y}
+                r=".07"
+                fill="none"
+                stroke="var(--muted)"
+                stroke-width=".03"
+              />
+            ) : (
+              <circle key={`${o.x},${o.y},${o.dir}`} cx={X} cy={Y} r=".11" fill="var(--bad)" />
+            )
+          })}
+          {ring && (
+            <circle
+              cx={ring[0]}
+              cy={ring[1]}
+              r=".36"
+              fill="none"
+              stroke="var(--accent)"
+              stroke-width=".06"
+              stroke-dasharray=".14 .08"
+            />
+          )}
+          {selected &&
+            shape(selected.module, selected.r).cells.map(([x, y]) => (
+              <rect
+                key={`${x},${y}`}
+                x={selected.x + x + 0.04}
+                y={selected.y + y + 0.04}
+                width=".92"
+                height=".92"
+                fill="none"
+                stroke="var(--accent)"
+                stroke-width=".06"
+                stroke-dasharray=".18 .1"
+              />
+            ))}
+        </g>
+        <g id="ghost" pointer-events="none">
+          <Ghost />
+        </g>
+      </svg>
+    </div>
+  )
+}
