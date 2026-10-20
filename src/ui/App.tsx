@@ -8,6 +8,7 @@ import { LangSwitch } from './components/LangSwitch'
 import { Inspector } from './Inspector'
 import { JsonDialog } from './JsonDialog'
 import { Palette } from './Palette'
+import { PrintSheet } from './PrintSheet'
 import { rotateDrag } from './pointer'
 import { useShortcuts } from './shortcuts'
 import { StatusBar } from './StatusBar'
@@ -76,6 +77,9 @@ export function App() {
           >
             {t('header.json')}
           </button>
+          <button id="printBtn" onClick={() => window.print()}>
+            {t('header.print')}
+          </button>
           <button id="clearBtn" onClick={() => store.clearPlan()}>
             {t('header.clear')}
           </button>
@@ -105,6 +109,7 @@ export function App() {
       </div>
       {dialog && <JsonDialog key={dialog.id} text={dialog.text} onClose={() => setDialog(null)} />}
       <Toast />
+      <PrintSheet />
     </>
   )
 }

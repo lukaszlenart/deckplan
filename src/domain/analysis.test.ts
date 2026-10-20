@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analyze, bulkheadAt, canPlace, pruneBulkheads } from './analysis'
+import { analyze, bulkheadAt, canPlace, planBounds, pruneBulkheads } from './analysis'
 import { samplePlan } from './sample'
 import { makePlan } from './testing'
 
@@ -103,5 +103,28 @@ describe('samplePlan', () => {
       expect(canPlace(others, p.module, p.r, p.x, p.y), `piece ${p.id}`).toBe(true)
     }
     expect(Object.keys(plan.bulkheads).every((k) => a.edges.has(k))).toBe(true)
+  })
+})
+
+describe('planBounds', () => {
+  it('covers every cell of every piece plus a one-cell margin', () => {
+    const plan = makePlan([
+      { module: 'K1', x: 5, y: 6, r: 0 },
+      { module: 'T1', x: 10, y: 8, r: 1 },
+    ])
+    // T1 rotated is 4×2, so it spans x 10–13, y 8–9
+    expect(planBounds(plan)).toEqual({ x: 4, y: 5, w: 11, h: 6 })
+  })
+
+  it('clamps the margin to the grid', () => {
+    const plan = makePlan([
+      { module: 'K1', x: 0, y: 0, r: 0 },
+      { module: 'K1', x: 39, y: 27, r: 0 },
+    ])
+    expect(planBounds(plan)).toEqual({ x: 0, y: 0, w: 40, h: 28 })
+  })
+
+  it('returns the whole grid for an empty plan', () => {
+    expect(planBounds(makePlan([]))).toEqual({ x: 0, y: 0, w: 40, h: 28 })
   })
 })

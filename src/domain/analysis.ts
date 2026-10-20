@@ -94,3 +94,23 @@ export function pruneBulkheads(plan: Plan): Plan {
     if (edges.has(key)) bulkheads[key] = type
   return { ...plan, bulkheads }
 }
+
+export interface Bounds {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
+/** The cells the plan uses plus `margin` on every side, clamped to the grid; the whole grid when empty. */
+export function planBounds(plan: Plan, margin = 1): Bounds {
+  const cells = plan.pieces.flatMap((p) =>
+    shape(p.module, p.r).cells.map(([cx, cy]) => [p.x + cx, p.y + cy] as const),
+  )
+  if (!cells.length) return { x: 0, y: 0, w: GRID.width, h: GRID.height }
+  const x0 = Math.max(0, Math.min(...cells.map((c) => c[0])) - margin)
+  const y0 = Math.max(0, Math.min(...cells.map((c) => c[1])) - margin)
+  const x1 = Math.min(GRID.width, Math.max(...cells.map((c) => c[0])) + 1 + margin)
+  const y1 = Math.min(GRID.height, Math.max(...cells.map((c) => c[1])) + 1 + margin)
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 }
+}

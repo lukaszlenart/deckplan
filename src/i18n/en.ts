@@ -7,6 +7,7 @@ export const en = {
   'header.undo': 'Undo',
   'header.undoTitle': 'Undo (Ctrl+Z)',
   'header.json': 'Save / load JSON',
+  'header.print': 'Print',
   'header.clear': 'Clear plan',
 
   'storage.writeError': 'Could not save to browser storage. Copy the JSON before closing this tab.',

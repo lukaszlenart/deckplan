@@ -48,8 +48,10 @@ pure functions (`domain/`, `storage/`, `ui/pointer.ts`, `ui/store.ts`) so it is 
   `beginBulkheadDrag`, `moveDrag`, `rotateDrag`, `resolveDrop`) plus `cellAt`/`nearestEdge`;
   `Board.tsx` wires it to pointer events. `shortcuts.ts` maps keys. `svg/` holds the JSX shape
   helpers shared by the board, the ghost preview and palette thumbnails.
-- `src/styles/app.css` — the whole stylesheet; light/dark via `prefers-color-scheme` and
-  `data-theme`; stacks under 760px.
+- `src/styles/app.css` — the editor stylesheet; light/dark via `prefers-color-scheme` and
+  `data-theme`, with the dark tokens under `@media screen` so print always gets the light set;
+  stacks under 760px. `print.css` hides the editor and shows `ui/PrintSheet.tsx`, which draws
+  the plan through the same `svg/PlanDrawing.tsx` as the board, cropped by `planBounds`.
 - `src/pwa/` — hand-written `sw.js`; a plugin in `vite.config.ts` prepends the precache list and
   a content-hashed cache name at build time. Registered only in production builds.
 
