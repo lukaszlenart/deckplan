@@ -38,6 +38,8 @@ describe('catalogue', () => {
     expect(() => moduleDef('Z9')).toThrow()
     expect(isModuleId('Z9')).toBe(false)
     expect(isModuleId(1)).toBe(false)
+    expect(isModuleId('constructor')).toBe(false)
+    expect(isModuleId('__proto__')).toBe(false)
     expect(isModuleId('K1')).toBe(true)
     expect(moduleDef('K1').code).toBe('WY-K1')
   })

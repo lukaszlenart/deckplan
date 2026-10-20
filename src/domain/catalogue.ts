@@ -115,7 +115,7 @@ export const MODULES: Readonly<Record<ModuleId, ModuleDef>> = defs
 export const GROUPS: readonly ModuleGroup[] = groups
 
 export function isModuleId(value: unknown): value is ModuleId {
-  return typeof value === 'string' && value in defs
+  return typeof value === 'string' && Object.hasOwn(defs, value)
 }
 
 export function moduleDef(id: ModuleId): ModuleDef {
