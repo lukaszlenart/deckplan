@@ -158,9 +158,9 @@ export function createStore(
 
     movePiece(id, x, y, r) {
       const current = plan.value
-      if (
-        !canPlace(current, plan.value.pieces.find((p) => p.id === id)?.module ?? '', r, x, y, id)
-      ) {
+      const piece = current.pieces.find((p) => p.id === id)
+      if (!piece) return false
+      if (!canPlace(current, piece.module, r, x, y, id)) {
         showToast('toast.noFitShort')
         return false
       }
