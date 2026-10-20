@@ -19,6 +19,9 @@ available in English and Polish.
 - **Plan check.** Counters for open corridor ends and detached fragments of the station.
 - **Saving.** The plan is saved automatically in the browser. It can also be exported and loaded
   as JSON. Undo with `Ctrl+Z` / `Cmd+Z`.
+- **Printing.** **Print** (or the browser's own print command) produces an A4 landscape sheet
+  with the station name and the plan, cropped to the area it uses. It always prints in the light
+  colours and leaves out the editor's markers.
 
 ## Running
 
@@ -99,7 +102,7 @@ src/
   storage/     repository interface, localStorage implementation, Zod schema, legacy migration, JSON backup
   i18n/        typed EN/PL dictionaries; en.ts defines the keys, pl.ts must match
   ui/          Preact components, editor store (signals), pointer and keyboard helpers
-  styles/      app.css
+  styles/      app.css, print.css
   pwa/         service worker and its precache list
 ```
 

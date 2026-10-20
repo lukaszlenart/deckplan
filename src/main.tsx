@@ -1,6 +1,7 @@
 import { render } from 'preact'
 import { App } from './ui/App'
 import './styles/app.css'
+import './styles/print.css'
 
 const root = document.getElementById('app')
 if (root) render(<App />, root)

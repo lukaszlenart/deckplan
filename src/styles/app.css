@@ -34,7 +34,8 @@ img {
   --f-body: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 }
-@media (prefers-color-scheme: dark) {
+/* Dark colours are screen-only: print always uses the light set above. */
+@media screen and (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     --bg: #10181c;
     --panel: #162127;
@@ -58,27 +59,29 @@ img {
     color-scheme: dark;
   }
 }
-:root[data-theme='dark'] {
-  --bg: #10181c;
-  --panel: #162127;
-  --board: #0d1417;
-  --ink: #dce6e9;
-  --muted: #8b9da5;
-  --rule: #26363e;
-  --grid: #1a272d;
-  --grid-major: #26373f;
-  --accent: #ee7434;
-  --accent-ink: #140b05;
-  --yellow: #e4b640;
-  --ok: #4fb57d;
-  --bad: #e5584c;
-  --corr: #3d4d55;
-  --corr-edge: #8fa3ac;
-  --hab: #22404d;
-  --ops: #3e3a2c;
-  --tech: #4a3022;
-  --room-edge: #a9bcc4;
-  color-scheme: dark;
+@media screen {
+  :root[data-theme='dark'] {
+    --bg: #10181c;
+    --panel: #162127;
+    --board: #0d1417;
+    --ink: #dce6e9;
+    --muted: #8b9da5;
+    --rule: #26363e;
+    --grid: #1a272d;
+    --grid-major: #26373f;
+    --accent: #ee7434;
+    --accent-ink: #140b05;
+    --yellow: #e4b640;
+    --ok: #4fb57d;
+    --bad: #e5584c;
+    --corr: #3d4d55;
+    --corr-edge: #8fa3ac;
+    --hab: #22404d;
+    --ops: #3e3a2c;
+    --tech: #4a3022;
+    --room-edge: #a9bcc4;
+    color-scheme: dark;
+  }
 }
 html,
 body {
@@ -452,4 +455,8 @@ main {
   background: color-mix(in srgb, var(--bad) 12%, var(--panel));
   color: var(--ink);
   font-size: 13px;
+}
+
+.print-sheet {
+  display: none;
 }

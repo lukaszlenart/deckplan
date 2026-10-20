@@ -8,6 +8,7 @@ export const pl: Messages = {
   'header.undo': 'Cofnij',
   'header.undoTitle': 'Cofnij (Ctrl+Z)',
   'header.json': 'Zapis / odczyt JSON',
+  'header.print': 'Drukuj',
   'header.clear': 'Wyczyść plan',
 
   'storage.writeError':

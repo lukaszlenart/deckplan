@@ -1,6 +1,4 @@
 import { useEffect, useRef } from 'preact/hooks'
-import { bulkheadAt } from '../domain/analysis'
-import { moduleDef } from '../domain/catalogue'
 import { edgeCenter, placementOffset, portPoint, shape } from '../domain/geometry'
 import { GRID } from '../domain/types'
 import {
@@ -13,10 +11,8 @@ import {
   type Box,
 } from './pointer'
 import { CELL, store, ZOOMS } from './store'
-import { BulkheadMark } from './svg/BulkheadMark'
-import { CorridorLayer } from './svg/CorridorLayer'
 import { Ghost } from './svg/Ghost'
-import { RoomShape } from './svg/RoomShape'
+import { PlanDrawing } from './svg/PlanDrawing'
 
 const CLICK_SUPPRESS_MS = 50
 
@@ -170,37 +166,7 @@ export function Board() {
           if (!store.drag.value) store.hoverCell.value = null
         }}
       >
-        <defs>
-          <pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse">
-            <path d="M1 0H0V1" fill="none" stroke="var(--grid)" stroke-width=".025" />
-          </pattern>
-          <pattern id="g5" width="5" height="5" patternUnits="userSpaceOnUse">
-            <path d="M5 0H0V5" fill="none" stroke="var(--grid-major)" stroke-width=".04" />
-          </pattern>
-        </defs>
-        <rect data-bg="1" width={GRID.width} height={GRID.height} fill="var(--board)" />
-        <rect width={GRID.width} height={GRID.height} fill="url(#g1)" pointer-events="none" />
-        <rect width={GRID.width} height={GRID.height} fill="url(#g5)" pointer-events="none" />
-        <g>
-          {plan.pieces
-            .filter((p) => moduleDef(p.module).kind === 'room')
-            .map((p) => (
-              <g key={p.id} class="piece" data-id={p.id}>
-                <RoomShape piece={p} shape={shape(p.module, p.r)} />
-              </g>
-            ))}
-        </g>
-        <CorridorLayer pieces={plan.pieces} />
-        <g>
-          {[...edges].map(([key, info]) => (
-            <BulkheadMark
-              key={key}
-              edge={key}
-              type={bulkheadAt(plan, key, info)}
-              hasRoom={info.hasRoom}
-            />
-          ))}
-        </g>
+        <PlanDrawing plan={plan} edges={edges} idPrefix="board" />
         <g pointer-events="none">
           {open.map((o) => {
             const [X, Y] = portPoint(o.x, o.y, o.dir)
