@@ -48,6 +48,13 @@ describe('migrate', () => {
     const plan = samplePlan('X')
     expect(migrate(plan)).toBe(plan)
     expect(migrate('nope')).toBe('nope')
+    const notAPlan = { pieces: 1 }
+    expect(migrate(notAPlan)).toBe(notAPlan)
     expect(migrate(null)).toBeNull()
+  })
+
+  it('defaults a missing legacy name to an empty string', () => {
+    const legacy = { pieces: [{ id: 1, t: 'K1', x: 0, y: 0, r: 0 }], doors: {} }
+    expect(parsePlan(migrate(legacy)).name).toBe('')
   })
 })

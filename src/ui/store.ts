@@ -153,6 +153,7 @@ export function createStore(
       const id = current.nextId
       commit({ ...current, pieces: [...current.pieces, { id, module, x, y, r }], nextId: id + 1 })
       selected.value = id
+      selectedEdge.value = null
       return true
     },
 
@@ -168,6 +169,7 @@ export function createStore(
       const pieces = current.pieces.map((p) => (p.id === id ? { ...p, x, y, r } : p))
       commit(pruneBulkheads({ ...current, pieces }))
       selected.value = id
+      selectedEdge.value = null
       return true
     },
 

@@ -14,9 +14,8 @@ const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'obj
 
 /** Turns a plan written by the single-file version (`t`, `doors`, Polish values) into the current shape. */
 export function migrate(raw: unknown): unknown {
-  if (!isRecord(raw) || 'schemaVersion' in raw) return raw
-  const legacyPieces = Array.isArray(raw.pieces) ? raw.pieces : []
-  const pieces = legacyPieces.filter(isRecord).map((p) => ({
+  if (!isRecord(raw) || 'schemaVersion' in raw || !Array.isArray(raw.pieces)) return raw
+  const pieces = raw.pieces.filter(isRecord).map((p) => ({
     id: p.id,
     module: p.t,
     x: p.x,
@@ -32,5 +31,6 @@ export function migrate(raw: unknown): unknown {
   }
   const ids = pieces.map((p) => (typeof p.id === 'number' ? p.id : 0))
   const nextId = typeof raw.nextId === 'number' ? raw.nextId : Math.max(0, ...ids) + 1
-  return { schemaVersion: CURRENT_SCHEMA_VERSION, name: raw.name, pieces, bulkheads, nextId }
+  const name = typeof raw.name === 'string' ? raw.name : ''
+  return { schemaVersion: CURRENT_SCHEMA_VERSION, name, pieces, bulkheads, nextId }
 }

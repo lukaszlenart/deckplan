@@ -33,7 +33,9 @@ const _fromDomain = (c: Plan): Parsed => c
 void _toDomain
 void _fromDomain
 
-/** Throws a `ZodError` when `raw` is not a current-format plan. */
+/** Throws a `ZodError` when `raw` is not a current-format plan. `nextId` is raised above every piece id. */
 export function parsePlan(raw: unknown): Plan {
-  return PlanSchema.parse(raw)
+  const plan = PlanSchema.parse(raw)
+  const nextId = Math.max(plan.nextId, ...plan.pieces.map((p) => p.id + 1), 1)
+  return nextId === plan.nextId ? plan : { ...plan, nextId }
 }

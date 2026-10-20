@@ -36,4 +36,15 @@ describe('PlanSchema', () => {
     const dup = { ...plan, pieces: plan.pieces.map((p) => ({ ...p, id: 1 })) }
     expect(() => parsePlan(dup)).toThrow()
   })
+
+  it('raises a nextId that is not above every piece id', () => {
+    const plan = makePlan([
+      { module: 'K1', x: 0, y: 0, r: 0 },
+      { module: 'K1', x: 5, y: 5, r: 0 },
+    ])
+    expect(parsePlan({ ...plan, nextId: 1 }).nextId).toBe(3)
+    expect(parsePlan({ ...plan, nextId: 2 }).nextId).toBe(3)
+    expect(parsePlan({ ...plan, nextId: 10 }).nextId).toBe(10)
+    expect(parsePlan({ ...plan, pieces: [], nextId: 0 }).nextId).toBe(1)
+  })
 })

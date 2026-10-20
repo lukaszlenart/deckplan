@@ -84,7 +84,9 @@ npm run typecheck && npm test && npm run lint
 - `nextId` is the id the next placed module will get.
 
 Plans exported by the previous single-file version of the app (with `t` instead of `module`
-and a Polish `doors` map) still load.
+and a Polish `doors` map) still load. Browser storage is per site, so a plan drawn in that old
+`index.html` is not visible here: open the old file, choose **Zapis / odczyt JSON**, copy the
+text and paste it into this app's **Save / load JSON** dialog.
 
 An example plan is in [`examples/kestrel-4.json`](examples/kestrel-4.json). To load it, open
 **Save / load JSON**, paste the file's contents and choose **Load**.

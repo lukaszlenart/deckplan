@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { samplePlan } from '../domain/sample'
 import { LocalStorageRepo, STORAGE_KEY } from '../storage/localStorageRepo'
 import { MemoryStorage } from '../storage/memoryStorage'
+import { importPlan } from '../storage/backup'
 import { createStore, HISTORY_LIMIT } from './store'
 
 const quiet = { warn: () => {} }
@@ -160,5 +161,26 @@ describe('store', () => {
     expect(store.zoom.value).toBe(5)
     for (let i = 0; i < 10; i++) store.zoomOut()
     expect(store.zoom.value).toBe(0)
+  })
+
+  it('hands out unique ids after loading a plan with a stale nextId', () => {
+    const { store } = setup()
+    const stale = { ...samplePlan('Stale'), nextId: 1 }
+    const result = importPlan(JSON.stringify(stale))
+    if (!result.ok) throw new Error('import failed')
+    store.loadPlan(result.plan)
+    store.placePiece('K1', 0, 30, 20)
+    const ids = store.plan.value.pieces.map((p) => p.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('placing or moving a piece clears the edge selection', () => {
+    const { store } = setup()
+    store.selectEdge('4,8,E')
+    store.placePiece('K1', 0, 30, 20)
+    expect(store.selectedEdge.value).toBeNull()
+    store.selectEdge('4,8,E')
+    store.movePiece(22, 31, 20, 0)
+    expect(store.selectedEdge.value).toBeNull()
   })
 })
