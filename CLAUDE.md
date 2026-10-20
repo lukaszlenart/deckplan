@@ -2,38 +2,72 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## What this is
+# Deckplan
 
-Deckplan is a single-file browser editor for drawing space station layouts from modular pieces on a square grid, built as a game master aid for sci-fi tabletop RPGs. The whole app is `index.html` (inline CSS + vanilla JS, no framework). The UI, code comments, catalogue names and README are in **Polish**; keep new UI strings and catalogue entries in Polish.
+Browser editor for space station deck plans built from catalogue modules on a 40 × 28 grid, a game
+master aid for sci-fi tabletop RPGs. Browser-only, no backend. The single plan lives in
+`localStorage`. UI in English and Polish.
 
-## Running and checking
+## Commands
 
-There is no build, package manager, linter or test suite. To run: open `index.html` in a browser (or `open index.html` on macOS). Verify changes by loading the page and exercising the editor; `examples/kestrel-4.json` can be pasted into the "Zapis / odczyt JSON" modal to load a known-good plan.
+- `npm run dev` — dev server (http://localhost:5173)
+- `npm run build` — typecheck + production build (`base: './'`, served from any folder)
+- `npm run preview` — preview the production build
+- `npm test` — Vitest, node environment; unit tests live next to source as `src/**/*.test.ts`
+- `npx vitest run src/domain/analysis.test.ts` — one file; add `-t "<name>"` for one test
+- `npm run typecheck` — `tsc --noEmit`
+- `npm run lint` — ESLint + Prettier check (`npm run format` to fix)
 
-The app persists state in `localStorage` under the key `wy-stacja-v1`. Clear that key (or change the key) when testing load/sample behaviour, because `load()` prefers stored state over `sample()`.
+Full check before committing: `npm run typecheck && npm test && npm run lint`. CI
+(`.github/workflows/ci.yml`) runs lint, typecheck, test and build on pull requests;
+`deploy.yml` runs it again and deploys every push to `main` to GitHub Pages.
 
-## Architecture of `index.html`
+There is no DOM test setup. UI changes are verified by hand in the dev server; keep logic in
+pure functions (`domain/`, `storage/`, `ui/pointer.ts`, `ui/store.ts`) so it is testable.
 
-The script is one flat module split by `// ---- Section ----` comments. Read them in this order:
+## Architecture
 
-1. **Katalog** – `DEF` (module definitions keyed by code `K1`–`K9`, `M*`, `O*`, `T*`) built via `group()`, `corr()`, `room()`. `DOORS` lists bulkhead types.
-2. **Geometria** – `shape(t, r)` returns the rotated `{cells, ports, ext, w, h}` of a module, memoized in `shapeCache`.
-3. **Stan** – `state = {name, pieces, doors, nextId}`, undo `history` (JSON snapshots, max 60), `load`/`persist`/`snapshot`/`undo`/`commit`.
-4. **Analiza** – `occupancy`, `canPlace`, `edgeKey`, `analyze()`.
-5. **Rysowanie** – `render()` rebuilds the entire `<svg id="board">` via `innerHTML`; `renderGhost()` and `renderInspector()` update sub-parts.
-6. **Akcje / Wskaźnik / Paleta / Klawiatura** – mutations and pointer/keyboard handling.
+- `src/domain/` — `types.ts` (`Plan`, `Piece`, `ModuleDef`, `Dir`, `EdgeKey`, `GRID`),
+  `catalogue.ts` (`MODULES`, `GROUPS`; module ids `K1`–`K9`, `M1`–`M3`, `O1`–`O4`, `T1`–`T3`
+  are stable identifiers in saved plans, codes are `WY-<id>`), `geometry.ts` (`shape(id, r)`
+  memoized rotation, `edgeKey`, `edgeCenter`, `portPoint`, `placementOffset`), `analysis.ts`
+  (`canPlace`, `analyze` → connections, open ports, fragments; `bulkheadAt`, `pruneBulkheads`),
+  `sample.ts` (first-run plan; keep in sync with `examples/kestrel-4.json`).
+- `src/storage/` — `PlanRepository` (`load`/`save`, synchronous), `LocalStorageRepo` under
+  `deckplan/plan`. Every read passes through `migrate()` (legacy single-file format: `t` →
+  `module`, Polish `doors` → `bulkheads`) and then the Zod `PlanSchema`; a compile-time check
+  keeps the schema and the `Plan` type in sync. Unreadable data is copied to
+  `deckplan/plan.corrupt` first. `backup.ts` does JSON export/import; import also rejects
+  overlapping or off-grid pieces and prunes dangling bulkheads.
+- `src/i18n/` — `en.ts` defines the keys and the `Messages` type; `pl.ts` must match it (tested).
+  `useT()` for UI strings, `useLocalize()` for catalogue `Localized` values, `usePlural()` for
+  `unit.cell.*`. The language is a signal, stored under `deckplan/lang`.
+- `src/ui/` — Preact + `@preact/signals`, one screen, no router. `store.ts` holds every signal
+  (plan, analysis, selection, pending placement, bulkhead tool, drag, zoom, toast) and every
+  mutation. `pointer.ts` is the pure drag reducer (`beginNewDrag`/`beginMoveDrag`/
+  `beginBulkheadDrag`, `moveDrag`, `rotateDrag`, `resolveDrop`) plus `cellAt`/`nearestEdge`;
+  `Board.tsx` wires it to pointer events. `shortcuts.ts` maps keys. `svg/` holds the JSX shape
+  helpers shared by the board, the ghost preview and palette thumbnails.
+- `src/styles/app.css` — the whole stylesheet; light/dark via `prefers-color-scheme` and
+  `data-theme`; stacks under 760px.
+- `src/pwa/` — hand-written `sw.js`; a plugin in `vite.config.ts` prepends the precache list and
+  a content-hashed cache name at build time. Registered only in production builds.
 
-### Conventions you must preserve
+## Conventions
 
-- **Mutation pattern**: every state change is `snapshot(); mutate state; commit()`. `commit()` persists to localStorage and re-renders. Never mutate `state` without a preceding `snapshot()` unless undo is intentionally skipped (only `stationName` change does this).
-- **Directions** are integers 0–7, clockwise from north (`DX`/`DY` tables). Corridors use only even values (0 N, 2 E, 4 S, 6 W) except the 45° pieces which use odd values. Opposite direction is `(d+4)%8`; rotating 90° clockwise is `(d+2)%8`.
-- **Ports** are `[cellX, cellY, dir]` relative to the module's top-left at rotation 0. Two modules are connected when a port of one faces the matching port of the other in the adjacent cell (`analyze()` builds `portMap` keyed `"x,y,d"`). `ext` ports (currently only the airlock `T3`) mark external exits and are drawn but never connect.
-- **Edge keys** for `doors` are `"x,y,E"` (right edge of cell) or `"x,y,S"` (bottom edge); `edgeKey()` normalises north/west ports to the neighbouring cell's S/E edge. Diagonal connections have no edge key and cannot hold a bulkhead. `doorType()` applies defaults: `drzwi` when a room is involved, `brak` between corridors. `pruneDoors()` drops entries whose edge no longer exists (run after moves and before export).
-- **SVG coordinates** are in grid units: the board `viewBox` is `0 0 GW GH` (40×28 cells) and `width/height` are scaled by `CELL * ZOOMS[zoom]`. All drawing helpers emit coordinates in cells, so stroke widths and radii are fractions of a cell.
-- **Pointer model**: palette items and board pieces start a `drag` on `pointerdown`; a move under 5px is treated as a click (select / toggle `pending` placement mode) in `onUp`. `suppressClick` guards the board `click` handler right after a drag. `pending` is click-to-place mode; `doorTool` is bulkhead-placement mode; `selected` (piece id) and `selectedDoor` (edge key) are mutually exclusive selections.
-- **Catalogue codes**: the JSON uses the short key `t` (`K1`, `M2`, …) while the displayed code is `WY-` + key. Adding a module means adding one `corr()`/`room()` line in the right `group()`; everything else (palette thumbnail, placement, rendering, status counts) derives from `DEF`.
-
-## Keeping files in sync
-
-- `sample()` in `index.html` and `examples/kestrel-4.json` describe the same plan; update both if the sample changes.
-- The README documents keyboard shortcuts, the JSON format and the module list; update it when those change.
+- Every plan mutation in the store is `snapshot()` (undo history, max 60) → build a new `Plan`
+  object → `commit()` (sets the signal, saves through the repository; a failed save becomes the
+  `storageError` banner). Only `renameStation` skips the snapshot. Never mutate `plan.value` in
+  place.
+- Directions are 0–7 clockwise from north (`DX`/`DY`). Corridors use even values except the 45°
+  pieces. `opposite` is +4, `rotateDir` is +2. Ports are `[cellX, cellY, dir]` relative to the
+  module's top-left at rotation 0; two modules connect when facing ports meet.
+- Bulkhead keys are `x,y,E` or `x,y,S`; north/west ports normalise to the neighbour's edge.
+  Diagonal connections have no key and cannot hold a bulkhead. Only explicitly set bulkheads
+  are stored; `bulkheadAt` supplies the default (`door` next to a room, `open` otherwise).
+- Pieces store module ids, not names, so switching language translates the whole plan.
+- Domain and storage code never import from `ui/` (enforced by ESLint).
+- No hard-coded UI text in components — only keys from `src/i18n/`. Code, comments and commits
+  in English.
+- Do not add dependencies outside the stack (Vite, TS, Preact, @preact/signals, Zod, Vitest,
+  ESLint, Prettier) without asking.
