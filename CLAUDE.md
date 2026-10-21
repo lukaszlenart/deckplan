@@ -25,6 +25,22 @@ Full check before committing: `npm run typecheck && npm test && npm run lint`. C
 There is no DOM test setup. UI changes are verified by hand in the dev server; keep logic in
 pure functions (`domain/`, `storage/`, `ui/pointer.ts`, `ui/store.ts`) so it is testable.
 
+Every pull request carries proof that the change works, in its description:
+
+- **Visible change** — a screenshot of the new state, or a short GIF when it is an interaction
+  (a drag, a sequence of clicks). Record it in the real app (`npm run dev`), not a mockup, and
+  show each behaviour the PR describes, including refusals and edge cases. `gh` cannot upload
+  images, so save the file and give the user its path to drop into the PR; leave a placeholder
+  line in the description until then.
+- **No visible change** (domain, storage, import/export, build) — the PR's new tests run against
+  `main` and against the branch: name the tests, paste the failing run on `main` and the passing
+  run on the branch. A refactor with no behaviour change instead shows the unchanged suite
+  passing on both, plus a round trip through an example file (e.g. `examples/kestrel-4.json`)
+  when storage is touched.
+- **Both** — both kinds of proof.
+
+A PR without proof is not ready for review.
+
 ## Architecture
 
 - `src/domain/` — `types.ts` (`Plan`, `Piece`, `ModuleDef`, `Dir`, `EdgeKey`, `GRID`),
