@@ -57,6 +57,8 @@ export type DragState =
       /** Screen size, not the stored own-frame size. */
       w: number
       h: number
+      minW: number
+      minH: number
       sx: number
       sy: number
       moved: boolean

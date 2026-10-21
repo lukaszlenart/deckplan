@@ -8,8 +8,9 @@ available in English and Polish.
 
 ## Features
 
-- **Grid.** One corridor tile takes one cell. Rooms take 1 to 8 cells (a 2×4 reactor, an L-shaped
-  laboratory).
+- **Grid.** One corridor tile takes one cell. Rooms take 1 to 8 cells (a 1×1 cabin, a 2×4 reactor)
+  and can be enlarged, never shrunk below that size. Each room shows a floor-plan sketch of what is
+  inside it.
 - **Corridors.** Straight, 90° corner, T-junction, crossing, 45° diagonal, straight-to-diagonal
   transitions, diagonal corner and end cap.
 - **Placing.** Drag a module from the catalogue, or click it and pick a spot on the grid. A red

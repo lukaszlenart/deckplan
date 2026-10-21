@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { isModuleId } from '../domain/catalogue'
 import { moduleDef } from '../domain/catalogue'
-import { isResizable, isWallSegment, pieceSize, shape } from '../domain/geometry'
+import { baseSize, isResizable, isWallSegment, pieceSize, shape } from '../domain/geometry'
 import { BULKHEAD_TYPES, GRID, type Plan } from '../domain/types'
 
 export const CURRENT_SCHEMA_VERSION = 1
@@ -36,6 +36,11 @@ const PieceSchema = z
     (p) => p.w === undefined || (isModuleId(p.module) && isResizable(p.module)),
     'module cannot be resized',
   )
+  .refine((p) => {
+    if (p.w === undefined || p.h === undefined || !isModuleId(p.module)) return true
+    const base = baseSize(p.module)
+    return p.w >= base.w && p.h >= base.h
+  }, 'smaller than the catalogue size')
   .refine((p) => {
     if (!p.doors) return true
     if (!isModuleId(p.module) || moduleDef(p.module).kind !== 'room') return false

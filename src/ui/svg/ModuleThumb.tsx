@@ -6,7 +6,7 @@ import { RoomShape } from './RoomShape'
 
 export function ModuleThumb({ id }: { id: ModuleId }) {
   const s = shape(id, 0)
-  const piece = { module: id, x: 0, y: 0 }
+  const piece = { module: id, x: 0, y: 0, r: 0 as const }
   const w = s.w + 0.16
   const h = s.h + 0.16
   return (

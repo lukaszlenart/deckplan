@@ -36,6 +36,11 @@ export function baseSize(id: ModuleId): Size {
   return { w: Math.max(...cells.map((c) => c[0])) + 1, h: Math.max(...cells.map((c) => c[1])) + 1 }
 }
 
+export function minScreenSize(id: ModuleId, r: Rotation): Size {
+  const { w, h } = baseSize(id)
+  return r % 2 === 0 ? { w, h } : { w: h, h: w }
+}
+
 export function isResizable(id: ModuleId): boolean {
   const def = moduleDef(id)
   const { w, h } = baseSize(id)
@@ -124,8 +129,9 @@ export function placementOffset(id: ModuleId, r: Rotation): [number, number] {
 
 /** `screenW`×`screenH` is the size on screen; the result stores it in the module's own frame. */
 export function resizePiece(p: Piece, screenW: number, screenH: number): Piece {
-  const sw = Math.max(1, screenW)
-  const sh = Math.max(1, screenH)
+  const min = minScreenSize(p.module, p.r)
+  const sw = Math.max(min.w, screenW)
+  const sh = Math.max(min.h, screenH)
   const [w, h] = p.r % 2 === 0 ? [sw, sh] : [sh, sw]
   const base = baseSize(p.module)
   const next: Piece = { id: p.id, module: p.module, x: p.x, y: p.y, r: p.r }

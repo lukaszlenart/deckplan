@@ -62,11 +62,7 @@ group('habitation', l('Habitation', 'Mieszkalne'), [
 ])
 group('operations', l('Operations', 'Operacyjne'), [
   room('O1', l('Bridge', 'Mostek'), 'ops', l('Bridge', 'Mostek'), rect(3, 2)),
-  room('O2', l('Laboratory', 'Laboratorium'), 'ops', l('Lab', 'Lab.'), [
-    [0, 0],
-    [1, 0],
-    [0, 1],
-  ]),
+  room('O2', l('Laboratory', 'Laboratorium'), 'ops', l('Lab', 'Lab.'), rect(2, 2)),
   room('O3', l('Storage', 'Magazyn'), 'ops', l('Storage', 'Magazyn'), rect(2, 1)),
   room('O4', l('Hangar', 'Hangar'), 'ops', l('Hangar', 'Hangar'), rect(4, 2)),
 ])

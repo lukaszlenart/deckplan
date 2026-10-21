@@ -5,6 +5,7 @@ import {
   edgeCenter,
   edgeKey,
   isResizable,
+  minScreenSize,
   pieceDoors,
   placementOffset,
   portPoint,
@@ -15,14 +16,13 @@ import {
 import type { Piece } from './types'
 
 describe('geometry', () => {
-  it('rotates an L-shaped room clockwise', () => {
-    const s = shape('O2', 1)
-    expect(s.w).toBe(2)
+  it('rotates a room clockwise', () => {
+    const s = shape('O3', 1)
+    expect(s.w).toBe(1)
     expect(s.h).toBe(2)
     expect(s.cells).toEqual([
-      [1, 0],
-      [1, 1],
       [0, 0],
+      [0, 1],
     ])
     expect(s.ports).toEqual([])
   })
@@ -66,6 +66,7 @@ describe('resizable shapes', () => {
       'M2',
       'M3',
       'O1',
+      'O2',
       'O3',
       'O4',
       'T1',
@@ -96,9 +97,21 @@ describe('resizable shapes', () => {
   it('resizePiece maps screen size to the own frame and normalises', () => {
     const p = { id: 1, module: 'O4', x: 0, y: 0, r: 0 as const }
     expect(resizePiece(p, 6, 3)).toEqual({ ...p, w: 6, h: 3 })
-    expect(resizePiece({ ...p, r: 1 }, 5, 2)).toEqual({ ...p, r: 1, w: 2, h: 5 })
+    expect(resizePiece({ ...p, r: 1 }, 3, 6)).toEqual({ ...p, r: 1, w: 6, h: 3 })
     expect(resizePiece({ ...p, w: 6, h: 3 }, 4, 2)).toEqual(p)
-    expect(resizePiece(p, 0, -2)).toEqual({ ...p, w: 1, h: 1 })
+    expect(resizePiece(p, 0, -2)).toEqual(p)
+  })
+
+  it('takes the catalogue size, turned, as the minimum screen size', () => {
+    expect(minScreenSize('T1', 0)).toEqual({ w: 2, h: 4 })
+    expect(minScreenSize('T1', 1)).toEqual({ w: 4, h: 2 })
+  })
+
+  it('never resizes a room below its catalogue size', () => {
+    const reactor = { id: 1, module: 'T1', x: 0, y: 0, r: 0 as const }
+    expect(resizePiece(reactor, 1, 1)).toEqual(reactor)
+    expect(resizePiece({ ...reactor, r: 1 }, 3, 1)).toEqual({ ...reactor, r: 1 })
+    expect(resizePiece({ ...reactor, r: 1 }, 6, 1)).toEqual({ ...reactor, r: 1, w: 2, h: 6 })
   })
 })
 
@@ -161,9 +174,14 @@ describe('placed doors', () => {
       { x: 3, y: 2, dir: 4, type: 'door' },
       { x: 5, y: 0, dir: 2, type: 'airlock' },
     ])
-    expect(resizePiece(p, 1, 2).doors).toEqual([
-      { x: 0, y: 1, dir: 4, type: 'bulkhead' },
-      { x: 0, y: 0, dir: 2, type: 'airlock' },
-    ])
+    const wide = hangar({
+      w: 6,
+      h: 3,
+      doors: [
+        { x: 4, y: 2, dir: 4, type: 'bulkhead' },
+        { x: 5, y: 2, dir: 4, type: 'door' },
+      ],
+    })
+    expect(resizePiece(wide, 4, 2).doors).toEqual([{ x: 3, y: 1, dir: 4, type: 'bulkhead' }])
   })
 })

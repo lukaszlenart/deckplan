@@ -125,7 +125,7 @@ export function Ghost() {
     <>
       <g opacity=".75">
         {moduleDef(placed.module).kind === 'room' ? (
-          <RoomShape piece={placed} shape={s} thumb />
+          <RoomShape piece={{ ...placed, ...placed.size }} shape={s} thumb />
         ) : (
           <CorridorStrokes piece={placed} shape={s} />
         )}

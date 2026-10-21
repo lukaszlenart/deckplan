@@ -1,10 +1,12 @@
 import { moduleDef } from '../../domain/catalogue'
-import { portPoint, type Shape } from '../../domain/geometry'
+import { baseSize, pieceSize, portPoint, type Shape } from '../../domain/geometry'
 import type { Piece, PlacedDoor } from '../../domain/types'
 import { useLocalize } from '../../i18n'
+import { ROOM_SKETCHES } from './roomSketches'
+import { sketchTransform } from './sketchFrame'
 
 interface Props {
-  piece: Pick<Piece, 'module' | 'x' | 'y'>
+  piece: Pick<Piece, 'module' | 'x' | 'y' | 'r' | 'w' | 'h'>
   shape: Shape
   /** Board-placed doors cut gaps in the wall. */
   doors?: readonly PlacedDoor[]
@@ -39,6 +41,16 @@ export function RoomShape({ piece: p, shape: s, doors = [], thumb = false }: Pro
           fill={`var(--${d.cls})`}
         />
       ))}
+      <g
+        transform={sketchTransform(p.x, p.y, p.r, pieceSize(p), baseSize(p.module))}
+        style={{ color: `var(--sketch-${d.cls ?? 'hab'})` }}
+        fill="none"
+        stroke="currentColor"
+        stroke-width={d.cls === 'tech' ? 0.035 : 0.03}
+        stroke-linejoin="round"
+      >
+        {ROOM_SKETCHES[p.module]?.()}
+      </g>
       <path
         d={walls}
         stroke="var(--room-edge)"
@@ -87,6 +99,9 @@ export function RoomShape({ piece: p, shape: s, doors = [], thumb = false }: Pro
             font-weight="600"
             font-size={fs}
             fill="var(--ink)"
+            paint-order="stroke"
+            stroke={`var(--${d.cls ?? 'hab'})`}
+            stroke-width={fs * 0.2}
           >
             {d.short ? localize(d.short) : ''}
           </text>
@@ -97,6 +112,9 @@ export function RoomShape({ piece: p, shape: s, doors = [], thumb = false }: Pro
             font-family="IBM Plex Mono, monospace"
             font-size={fs * 0.62}
             fill="var(--muted)"
+            paint-order="stroke"
+            stroke={`var(--${d.cls ?? 'hab'})`}
+            stroke-width={fs * 0.15}
           >
             {d.code}
           </text>

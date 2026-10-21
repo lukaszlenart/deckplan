@@ -1,4 +1,10 @@
-import { edgeCenter, nextRotation, pieceShape, placementOffset } from '../domain/geometry'
+import {
+  edgeCenter,
+  minScreenSize,
+  nextRotation,
+  pieceShape,
+  placementOffset,
+} from '../domain/geometry'
 import type { BulkheadType, Cell, EdgeKey, ModuleId, Piece, Rotation } from '../domain/types'
 import { GRID } from '../domain/types'
 import type { DragState } from './store'
@@ -90,6 +96,7 @@ export function beginBulkheadDrag(type: BulkheadType, p: Point): DragState {
 
 export function beginResizeDrag(piece: Piece, p: Point): DragState {
   const { w, h } = pieceShape(piece)
+  const min = minScreenSize(piece.module, piece.r)
   return {
     kind: 'resize',
     id: piece.id,
@@ -97,6 +104,8 @@ export function beginResizeDrag(piece: Piece, p: Point): DragState {
     y: piece.y,
     w,
     h,
+    minW: min.w,
+    minH: min.h,
     sx: p.x,
     sy: p.y,
     moved: false,
@@ -115,8 +124,8 @@ export function moveDrag(
   if (drag.kind === 'bulkhead') return { ...drag, moved, edge }
   if (drag.kind === 'resize') {
     if (!cell) return { ...drag, moved, over: false }
-    const w = Math.max(1, cell[0] - drag.x + 1)
-    const h = Math.max(1, cell[1] - drag.y + 1)
+    const w = Math.max(drag.minW, cell[0] - drag.x + 1)
+    const h = Math.max(drag.minH, cell[1] - drag.y + 1)
     return { ...drag, moved, over: true, w, h }
   }
   if (!cell) return { ...drag, moved, over: false }

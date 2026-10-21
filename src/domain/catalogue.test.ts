@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GROUPS, MODULES, isModuleId, moduleDef } from './catalogue'
+import { isResizable } from './geometry'
 
 describe('catalogue', () => {
   it('has 19 modules in 4 groups and every group member exists', () => {
@@ -45,12 +46,14 @@ describe('catalogue', () => {
     expect(moduleDef('K1').code).toBe('WY-K1')
   })
 
-  it('keeps the legacy shapes', () => {
+  it('keeps the legacy shapes, with the lab as a 2×2 room', () => {
     expect(MODULES.O2?.cells).toEqual([
       [0, 0],
       [1, 0],
       [0, 1],
+      [1, 1],
     ])
+    expect(isResizable('O2')).toBe(true)
     expect(MODULES.T3?.ext).toEqual([[0, 0, 0]])
     expect(MODULES.K8?.ports).toEqual([
       [0, 0, 1],
