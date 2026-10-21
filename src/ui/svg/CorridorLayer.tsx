@@ -1,5 +1,5 @@
 import { moduleDef } from '../../domain/catalogue'
-import { portPoint, shape, type Shape } from '../../domain/geometry'
+import { pieceShape, portPoint, type Shape } from '../../domain/geometry'
 import type { Piece } from '../../domain/types'
 
 type Placed = Pick<Piece, 'module' | 'x' | 'y'>
@@ -53,10 +53,10 @@ export function CorridorLayer({ pieces }: { pieces: Piece[] }) {
     <>
       <g pointer-events="none">
         {corridors.map((p) => (
-          <CorridorStroke key={`o${p.id}`} piece={p} shape={shape(p.module, p.r)} layer="outer" />
+          <CorridorStroke key={`o${p.id}`} piece={p} shape={pieceShape(p)} layer="outer" />
         ))}
         {corridors.map((p) => (
-          <CorridorStroke key={`i${p.id}`} piece={p} shape={shape(p.module, p.r)} layer="inner" />
+          <CorridorStroke key={`i${p.id}`} piece={p} shape={pieceShape(p)} layer="inner" />
         ))}
       </g>
       <g>

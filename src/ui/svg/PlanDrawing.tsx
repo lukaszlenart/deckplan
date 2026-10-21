@@ -1,6 +1,6 @@
 import { bulkheadAt, type EdgeInfo } from '../../domain/analysis'
 import { moduleDef } from '../../domain/catalogue'
-import { shape } from '../../domain/geometry'
+import { pieceShape } from '../../domain/geometry'
 import type { EdgeKey, Plan } from '../../domain/types'
 import { GRID } from '../../domain/types'
 import { BulkheadMark } from './BulkheadMark'
@@ -36,7 +36,7 @@ export function PlanDrawing({ plan, edges, idPrefix }: Props) {
           .filter((p) => moduleDef(p.module).kind === 'room')
           .map((p) => (
             <g key={p.id} class="piece" data-id={p.id}>
-              <RoomShape piece={p} shape={shape(p.module, p.r)} />
+              <RoomShape piece={p} shape={pieceShape(p)} />
             </g>
           ))}
       </g>

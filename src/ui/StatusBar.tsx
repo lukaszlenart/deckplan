@@ -1,5 +1,5 @@
 import { moduleDef } from '../domain/catalogue'
-import { shape } from '../domain/geometry'
+import { pieceShape } from '../domain/geometry'
 import { useT } from '../i18n'
 import { store } from './store'
 
@@ -8,7 +8,7 @@ export function StatusBar() {
   const plan = store.plan.value
   const { open, fragments } = store.analysis.value
   const rooms = plan.pieces.filter((p) => moduleDef(p.module).kind === 'room').length
-  const cells = plan.pieces.reduce((a, p) => a + shape(p.module, p.r).cells.length, 0)
+  const cells = plan.pieces.reduce((a, p) => a + pieceShape(p).cells.length, 0)
   const openEnds = open.filter((o) => !o.room).length
   const detached = plan.pieces.length ? fragments - 1 : 0
   return (

@@ -1,6 +1,6 @@
 import { moduleDef } from './catalogue'
-import { DX, DY, edgeKey, opposite, shape } from './geometry'
-import type { BulkheadType, Dir, EdgeKey, ModuleId, Plan, Rotation } from './types'
+import { DX, DY, edgeKey, opposite, pieceShape, shape } from './geometry'
+import type { BulkheadType, Dir, EdgeKey, ModuleId, Plan, Rotation, Size } from './types'
 import { GRID } from './types'
 
 export interface EdgeInfo {
@@ -25,7 +25,7 @@ export function occupancy(plan: Plan, ignoreId?: number): Map<string, number> {
   const occ = new Map<string, number>()
   for (const p of plan.pieces) {
     if (p.id === ignoreId) continue
-    for (const [cx, cy] of shape(p.module, p.r).cells) occ.set(`${p.x + cx},${p.y + cy}`, p.id)
+    for (const [cx, cy] of pieceShape(p).cells) occ.set(`${p.x + cx},${p.y + cy}`, p.id)
   }
   return occ
 }
@@ -37,9 +37,10 @@ export function canPlace(
   x: number,
   y: number,
   ignoreId?: number,
+  size?: Size,
 ): boolean {
   const occ = occupancy(plan, ignoreId)
-  return shape(id, r).cells.every(([cx, cy]) => {
+  return shape(id, r, size).cells.every(([cx, cy]) => {
     const X = x + cx
     const Y = y + cy
     return X >= 0 && Y >= 0 && X < GRID.width && Y < GRID.height && !occ.has(`${X},${Y}`)
@@ -50,7 +51,7 @@ export function analyze(plan: Plan): Analysis {
   const isRoom = new Map(plan.pieces.map((p) => [p.id, moduleDef(p.module).kind === 'room']))
   const portMap = new Map<string, number>()
   for (const p of plan.pieces) {
-    for (const [x, y, d] of shape(p.module, p.r).ports) {
+    for (const [x, y, d] of pieceShape(p).ports) {
       portMap.set(`${p.x + x},${p.y + y},${d}`, p.id)
     }
   }
@@ -105,7 +106,7 @@ export interface Bounds {
 /** The cells the plan uses plus `margin` on every side, clamped to the grid; the whole grid when empty. */
 export function planBounds(plan: Plan, margin = 1): Bounds {
   const cells = plan.pieces.flatMap((p) =>
-    shape(p.module, p.r).cells.map(([cx, cy]) => [p.x + cx, p.y + cy] as const),
+    pieceShape(p).cells.map(([cx, cy]) => [p.x + cx, p.y + cy] as const),
   )
   if (!cells.length) return { x: 0, y: 0, w: GRID.width, h: GRID.height }
   const x0 = Math.max(0, Math.min(...cells.map((c) => c[0])) - margin)

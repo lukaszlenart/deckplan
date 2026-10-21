@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'preact/hooks'
-import { edgeCenter, placementOffset, portPoint, shape } from '../domain/geometry'
+import { edgeCenter, pieceShape, placementOffset, portPoint } from '../domain/geometry'
 import { GRID } from '../domain/types'
 import {
   beginMoveDrag,
@@ -196,7 +196,7 @@ export function Board() {
             />
           )}
           {selected &&
-            shape(selected.module, selected.r).cells.map(([x, y]) => (
+            pieceShape(selected).cells.map(([x, y]) => (
               <rect
                 key={`${x},${y}`}
                 x={selected.x + x + 0.04}
