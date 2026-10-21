@@ -73,4 +73,30 @@ describe('PlanSchema', () => {
     expect(() => parsePlan(at(1, 29, 2))).toThrow()
     expect(() => parsePlan(at(0, 2, 30))).toThrow()
   })
+
+  it('accepts doors on room walls', () => {
+    const plan = makePlan([
+      { module: 'O4', x: 0, y: 0, r: 0, doors: [{ x: 3, y: 1, dir: 2, type: 'door' }] },
+    ])
+    expect(parsePlan(plan).pieces[0]?.doors).toHaveLength(1)
+  })
+
+  it('rejects doors off the wall, on corridors, diagonal or duplicated', () => {
+    const at = (module: string, doors: unknown) =>
+      makePlan([{ module, x: 0, y: 0, r: 0, doors } as never])
+    expect(() => parsePlan(at('O4', [{ x: 1, y: 0, dir: 2, type: 'door' }]))).toThrow()
+    expect(() => parsePlan(at('O4', [{ x: 9, y: 0, dir: 0, type: 'door' }]))).toThrow()
+    expect(() => parsePlan(at('O4', [{ x: 0, y: 0, dir: 1, type: 'door' }]))).toThrow()
+    expect(() => parsePlan(at('K1', [{ x: 0, y: 0, dir: 2, type: 'door' }]))).toThrow()
+    const d = { x: 0, y: 0, dir: 0, type: 'door' }
+    expect(() => parsePlan(at('O4', [d, d]))).toThrow()
+    expect(() => parsePlan(at('Z9', [d]))).toThrow(ZodError)
+  })
+
+  it('checks doors against the resized footprint', () => {
+    const plan = makePlan([
+      { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 2, doors: [{ x: 5, y: 0, dir: 2, type: 'door' }] },
+    ])
+    expect(parsePlan(plan).pieces[0]?.doors).toHaveLength(1)
+  })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { samplePlan } from '../domain/sample'
+import { makePlan } from '../domain/testing'
 import { LEGACY_KESTREL } from './legacyFixture'
 import {
   CORRUPT_BACKUP_KEY,
@@ -72,5 +73,20 @@ describe('LocalStorageRepo', () => {
     }
     const repo = new LocalStorageRepo({ storage, logger: quiet })
     expect(() => repo.save(samplePlan('X'))).toThrow(StorageError)
+  })
+
+  it('loads a plan saved before placed doors with doorless rooms', () => {
+    const old = makePlan(
+      [
+        { module: 'M1', x: 0, y: 1, r: 0 },
+        { module: 'K1', x: 0, y: 2, r: 0 },
+      ],
+      { '0,1,S': 'airlock' },
+    )
+    const storage = new MemoryStorage()
+    storage.setItem(STORAGE_KEY, JSON.stringify(old))
+    const loaded = new LocalStorageRepo({ storage, logger: quiet }).load()
+    expect(loaded?.pieces[0]).not.toHaveProperty('doors')
+    expect(storage.getItem(CORRUPT_BACKUP_KEY)).toBeNull()
   })
 })
