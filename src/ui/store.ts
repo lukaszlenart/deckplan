@@ -1,8 +1,17 @@
 import { computed, signal, type ReadonlySignal, type Signal } from '@preact/signals'
 import { analyze, canPlace, pruneBulkheads, type Analysis } from '../domain/analysis'
-import { nextRotation, pieceSize, resizePiece } from '../domain/geometry'
+import { doorAt, nextRotation, pieceSize, resizePiece } from '../domain/geometry'
 import { samplePlan } from '../domain/sample'
-import type { BulkheadType, Cell, EdgeKey, ModuleId, Plan, Rotation } from '../domain/types'
+import type {
+  BulkheadType,
+  Cell,
+  Door,
+  EdgeKey,
+  ModuleId,
+  Piece,
+  Plan,
+  Rotation,
+} from '../domain/types'
 import { lang, translate, type MessageKey, type Params } from '../i18n'
 import { LocalStorageRepo } from '../storage/localStorageRepo'
 import type { PlanRepository } from '../storage/repository'
@@ -95,7 +104,8 @@ export function createStore(
   sampleName: () => string,
   initialZoom = 3,
 ): Store {
-  const plan = signal<Plan>(repo.load() ?? samplePlan(sampleName()))
+  const loaded = repo.load()
+  const plan = signal<Plan>(loaded ? pruneBulkheads(loaded) : samplePlan(sampleName()))
   const analysis = computed(() => analyze(plan.value))
   const canUndo = signal(false)
   const selected = signal<number | null>(null)
@@ -108,6 +118,9 @@ export function createStore(
   const hoverEdge = signal<EdgeKey | null>(null)
   const toast = signal<Toast | null>(null)
   const storageError = signal(false)
+
+  const sameSpot = (a: Omit<Door, 'type'>, b: Omit<Door, 'type'>) =>
+    a.x === b.x && a.y === b.y && a.dir === b.dir
 
   const history: string[] = []
   let toastId = 0
@@ -219,6 +232,20 @@ export function createStore(
     },
 
     deleteSelected() {
+      const edge = selectedEdge.value
+      const door = edge ? analysis.value.doors.get(edge) : undefined
+      if (edge && door) {
+        const current = plan.value
+        const owner = current.pieces.find((p) => p.id === door.pieceId)
+        const at = owner && doorAt(owner, edge)
+        if (!owner || !at) return
+        snapshot()
+        const doors = (owner.doors ?? []).filter((d) => !sameSpot(d, at))
+        const pieces = current.pieces.map((p) => (p.id === owner.id ? { ...p, doors } : p))
+        commit(pruneBulkheads({ ...current, pieces }))
+        selectedEdge.value = null
+        return
+      }
       const id = selected.value
       if (id == null) return
       snapshot()
@@ -228,10 +255,27 @@ export function createStore(
     },
 
     setBulkhead(key, type) {
-      if (!analysis.value.edges.has(key)) return
-      snapshot()
       const current = plan.value
-      commit({ ...current, bulkheads: { ...current.bulkheads, [key]: type } })
+      const door = analysis.value.doors.get(key)
+      const room = door
+        ? current.pieces.find((p) => p.id === door.pieceId)
+        : current.pieces
+            .filter((p) => doorAt(p, key))
+            .reduce<Piece | undefined>((a, p) => (a && a.id < p.id ? a : p), undefined)
+      const at = room && doorAt(room, key)
+      if (room && at) {
+        const doors = door
+          ? (room.doors ?? []).map((d) => (sameSpot(d, at) ? { ...d, type } : d))
+          : [...(room.doors ?? []), { ...at, type }]
+        snapshot()
+        commit({
+          ...current,
+          pieces: current.pieces.map((p) => (p === room ? { ...p, doors } : p)),
+        })
+      } else if (analysis.value.edges.has(key)) {
+        snapshot()
+        commit({ ...current, bulkheads: { ...current.bulkheads, [key]: type } })
+      } else return
       showToast(`bulkhead.${type}`)
     },
 
@@ -264,7 +308,7 @@ export function createStore(
       selected.value = null
       selectedEdge.value = null
       clearModes()
-      commit(next)
+      commit(pruneBulkheads(next))
     },
 
     selectPiece(id) {
