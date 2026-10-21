@@ -34,6 +34,19 @@ export type DragState =
       moved: boolean
       edge: EdgeKey | null
     }
+  | {
+      kind: 'resize'
+      id: number
+      x: number
+      y: number
+      /** Screen size, not the stored own-frame size. */
+      w: number
+      h: number
+      sx: number
+      sy: number
+      moved: boolean
+      over: boolean
+    }
 
 export interface Toast {
   id: number

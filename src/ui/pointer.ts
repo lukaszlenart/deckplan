@@ -1,4 +1,4 @@
-import { edgeCenter, placementOffset, nextRotation } from '../domain/geometry'
+import { edgeCenter, nextRotation, pieceShape, placementOffset } from '../domain/geometry'
 import type { BulkheadType, Cell, EdgeKey, ModuleId, Piece, Rotation } from '../domain/types'
 import { GRID } from '../domain/types'
 import type { DragState } from './store'
@@ -88,6 +88,22 @@ export function beginBulkheadDrag(type: BulkheadType, p: Point): DragState {
   return { kind: 'bulkhead', type, sx: p.x, sy: p.y, moved: false, edge: null }
 }
 
+export function beginResizeDrag(piece: Piece, p: Point): DragState {
+  const { w, h } = pieceShape(piece)
+  return {
+    kind: 'resize',
+    id: piece.id,
+    x: piece.x,
+    y: piece.y,
+    w,
+    h,
+    sx: p.x,
+    sy: p.y,
+    moved: false,
+    over: true,
+  }
+}
+
 export function moveDrag(
   drag: DragState,
   p: Point,
@@ -97,13 +113,19 @@ export function moveDrag(
   const moved = drag.moved || Math.hypot(p.x - drag.sx, p.y - drag.sy) > DRAG_THRESHOLD
   if (!moved) return drag
   if (drag.kind === 'bulkhead') return { ...drag, moved, edge }
+  if (drag.kind === 'resize') {
+    if (!cell) return { ...drag, moved, over: false }
+    const w = Math.max(1, cell[0] - drag.x + 1)
+    const h = Math.max(1, cell[1] - drag.y + 1)
+    return { ...drag, moved, over: true, w, h }
+  }
   if (!cell) return { ...drag, moved, over: false }
   return { ...drag, moved, over: true, gx: cell[0] - drag.off[0], gy: cell[1] - drag.off[1] }
 }
 
 /** Rotates the dragged piece; a new piece is re-centred under the pointer, a moved one keeps its grab offset. */
 export function rotateDrag(drag: DragState): DragState {
-  if (drag.kind === 'bulkhead') return drag
+  if (drag.kind === 'bulkhead' || drag.kind === 'resize') return drag
   const r = nextRotation(drag.r)
   if (drag.kind === 'move') return { ...drag, r }
   const off = placementOffset(drag.module, r)
@@ -121,12 +143,14 @@ export type DropOutcome =
   | { kind: 'place'; module: ModuleId; r: Rotation; x: number; y: number }
   | { kind: 'move'; id: number; x: number; y: number; r: Rotation }
   | { kind: 'bulkhead'; type: BulkheadType; edge: EdgeKey | null }
+  | { kind: 'resize'; id: number; w: number; h: number }
   | { kind: 'cancel' }
 
 export function resolveDrop(drag: DragState): DropOutcome {
   if (!drag.moved) return { kind: 'click' }
   if (drag.kind === 'bulkhead') return { kind: 'bulkhead', type: drag.type, edge: drag.edge }
   if (!drag.over) return { kind: 'cancel' }
+  if (drag.kind === 'resize') return { kind: 'resize', id: drag.id, w: drag.w, h: drag.h }
   if (drag.kind === 'new')
     return { kind: 'place', module: drag.module, r: drag.r, x: drag.gx, y: drag.gy }
   return { kind: 'move', id: drag.id, x: drag.gx, y: drag.gy, r: drag.r }

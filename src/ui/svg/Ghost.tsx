@@ -33,7 +33,7 @@ export function Ghost() {
       </>
     )
   }
-  if (drag?.kind === 'bulkhead') return null
+  if (drag?.kind === 'bulkhead' || drag?.kind === 'resize') return null
 
   let placed: { module: string; r: 0 | 1 | 2 | 3; x: number; y: number; ignore?: number } | null =
     null
