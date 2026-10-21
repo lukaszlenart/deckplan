@@ -1,6 +1,6 @@
 import { computed, signal, type ReadonlySignal, type Signal } from '@preact/signals'
 import { analyze, canPlace, pruneBulkheads, type Analysis } from '../domain/analysis'
-import { nextRotation } from '../domain/geometry'
+import { nextRotation, pieceSize, resizePiece } from '../domain/geometry'
 import { samplePlan } from '../domain/sample'
 import type { BulkheadType, Cell, EdgeKey, ModuleId, Plan, Rotation } from '../domain/types'
 import { lang, translate, type MessageKey, type Params } from '../i18n'
@@ -71,6 +71,8 @@ export interface Store {
   placePiece(module: ModuleId, r: Rotation, x: number, y: number): boolean
   movePiece(id: number, x: number, y: number, r: Rotation): boolean
   rotateSelected(): void
+  /** `w`×`h` is the size on screen. */
+  resizePiece(id: number, w: number, h: number): boolean
   deleteSelected(): void
   setBulkhead(key: EdgeKey, type: BulkheadType): void
   clearPlan(): void
@@ -174,7 +176,7 @@ export function createStore(
       const current = plan.value
       const piece = current.pieces.find((p) => p.id === id)
       if (!piece) return false
-      if (!canPlace(current, piece.module, r, x, y, id)) {
+      if (!canPlace(current, piece.module, r, x, y, id, pieceSize(piece))) {
         showToast('toast.noFitShort')
         return false
       }
@@ -191,13 +193,29 @@ export function createStore(
       const piece = current.pieces.find((p) => p.id === selected.value)
       if (!piece) return
       const r = nextRotation(piece.r)
-      if (!canPlace(current, piece.module, r, piece.x, piece.y, piece.id)) {
+      if (!canPlace(current, piece.module, r, piece.x, piece.y, piece.id, pieceSize(piece))) {
         showToast('toast.noRotate')
         return
       }
       snapshot()
       const pieces = current.pieces.map((p) => (p.id === piece.id ? { ...p, r } : p))
       commit(pruneBulkheads({ ...current, pieces }))
+    },
+
+    resizePiece(id, w, h) {
+      const current = plan.value
+      const piece = current.pieces.find((p) => p.id === id)
+      if (!piece) return false
+      const next = resizePiece(piece, w, h)
+      if (next.w === piece.w && next.h === piece.h) return true
+      if (!canPlace(current, piece.module, piece.r, piece.x, piece.y, id, pieceSize(next))) {
+        showToast('toast.noFitShort')
+        return false
+      }
+      snapshot()
+      const pieces = current.pieces.map((p) => (p.id === id ? next : p))
+      commit(pruneBulkheads({ ...current, pieces }))
+      return true
     },
 
     deleteSelected() {
