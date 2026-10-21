@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { samplePlan } from '../domain/sample'
+import { freeWallSegments } from '../domain/analysis'
 import { makePlan } from '../domain/testing'
+import type { Plan } from '../domain/types'
 import { LocalStorageRepo, STORAGE_KEY } from '../storage/localStorageRepo'
 import { MemoryStorage } from '../storage/memoryStorage'
-import { importPlan } from '../storage/backup'
+import { exportPlan, importPlan } from '../storage/backup'
 import { createStore, HISTORY_LIMIT } from './store'
 
 const quiet = { warn: () => {} }
@@ -113,11 +115,12 @@ describe('store', () => {
     expect(store.selected.value).toBeNull()
   })
 
-  it('movePiece prunes bulkheads that lost their edge', () => {
+  it('movePiece carries the room doors and drops the connection it left', () => {
     const { store } = setup()
-    expect(store.plan.value.bulkheads['16,5,S']).toBe('airlock')
+    expect(store.analysis.value.edges.get('16,5,S')?.door?.type).toBe('airlock')
     expect(store.movePiece(21, 30, 20, 0)).toBe(true)
-    expect(store.plan.value.bulkheads['16,5,S']).toBeUndefined()
+    expect(store.analysis.value.edges.has('16,5,S')).toBe(false)
+    expect(store.analysis.value.doors.get('30,20,S')).toMatchObject({ type: 'airlock' })
     expect(store.movePiece(21, 4, 8, 0)).toBe(false)
     expect(store.toast.value?.key).toBe('toast.noFitShort')
   })
@@ -239,5 +242,104 @@ describe('store', () => {
     expect(store.movePiece(1, 10, 0, 0)).toBe(false)
     expect(store.movePiece(1, 2, 5, 0)).toBe(true)
     expect(store.plan.value.pieces[0]).toMatchObject({ x: 2, y: 5, w: 6, h: 2 })
+  })
+
+  it('setBulkhead places a door on a free wall, retypes it, and Delete removes it', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan([
+        { module: 'M1', x: 0, y: 1, r: 0 },
+        { module: 'K1', x: 0, y: 2, r: 0 },
+      ]),
+    )
+    store.setBulkhead('0,1,S', 'door')
+    expect(store.plan.value.pieces[0]?.doors).toEqual([{ x: 0, y: 0, dir: 4, type: 'door' }])
+    expect(store.analysis.value.fragments).toBe(1)
+    store.setBulkhead('0,1,S', 'welded')
+    expect(store.plan.value.pieces[0]?.doors).toEqual([{ x: 0, y: 0, dir: 4, type: 'welded' }])
+    store.selectEdge('0,1,S')
+    store.deleteSelected()
+    expect(store.plan.value.pieces[0]?.doors ?? []).toEqual([])
+    expect(store.plan.value.pieces).toHaveLength(2)
+    expect(store.analysis.value.open).toContainEqual({ x: 0, y: 2, dir: 0, room: false })
+    store.undo()
+    expect(store.plan.value.pieces[0]?.doors).toEqual([{ x: 0, y: 0, dir: 4, type: 'welded' }])
+  })
+
+  it('a door on a shared wall is placed once, on the lower-id room', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan([
+        { module: 'M1', x: 1, y: 0, r: 0 },
+        { module: 'M1', x: 0, y: 0, r: 0 },
+      ]),
+    )
+    store.setBulkhead('0,0,E', 'door')
+    expect(store.plan.value.pieces.map((p) => p.doors ?? [])).toEqual([
+      [{ x: 0, y: 0, dir: 6, type: 'door' }],
+      [],
+    ])
+    expect(freeWallSegments(store.plan.value)).not.toContain('0,0,E')
+  })
+
+  it('loading drops bulkheads stored on room edges', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan(
+        [
+          { module: 'M1', x: 0, y: 1, r: 0 },
+          { module: 'K1', x: 0, y: 2, r: 0 },
+        ],
+        { '0,1,S': 'airlock' },
+      ),
+    )
+    expect(store.plan.value.bulkheads).toEqual({})
+  })
+
+  describe('a room moved onto another room door drops its own clashing door', () => {
+    const rooms = () =>
+      makePlan([
+        { module: 'M1', x: 5, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 2, type: 'door' }] },
+        { module: 'M1', x: 8, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 6, type: 'welded' }] },
+      ])
+    const exportable = (plan: Plan) => importPlan(exportPlan(plan)).ok
+
+    it('movePiece', () => {
+      const { store } = setup()
+      store.loadPlan(rooms())
+      expect(store.movePiece(2, 6, 5, 0)).toBe(true)
+      expect(store.plan.value.pieces[1]?.doors ?? []).toEqual([])
+      expect(store.analysis.value.doors.get('5,5,E')).toMatchObject({ pieceId: 1, type: 'door' })
+      expect(exportable(store.plan.value)).toBe(true)
+    })
+
+    it('rotateSelected', () => {
+      const { store } = setup()
+      store.loadPlan(
+        makePlan([
+          { module: 'M1', x: 5, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 2, type: 'door' }] },
+          { module: 'M1', x: 6, y: 5, r: 1, doors: [{ x: 0, y: 0, dir: 2, type: 'welded' }] },
+        ]),
+      )
+      store.selectPiece(2)
+      store.rotateSelected()
+      expect(store.plan.value.pieces[1]).toMatchObject({ r: 2 })
+      expect(store.plan.value.pieces[1]?.doors ?? []).toEqual([])
+      expect(exportable(store.plan.value)).toBe(true)
+    })
+
+    it('resizePiece', () => {
+      const { store } = setup()
+      store.loadPlan(
+        makePlan([
+          { module: 'O4', x: 10, y: 10, r: 0, doors: [{ x: 3, y: 0, dir: 2, type: 'airlock' }] },
+          { module: 'M1', x: 15, y: 10, r: 0, doors: [{ x: 0, y: 0, dir: 6, type: 'door' }] },
+        ]),
+      )
+      expect(store.resizePiece(1, 5, 2)).toBe(true)
+      expect(store.plan.value.pieces[0]?.doors ?? []).toEqual([])
+      expect(store.analysis.value.doors.get('14,10,E')).toMatchObject({ pieceId: 2, type: 'door' })
+      expect(exportable(store.plan.value)).toBe(true)
+    })
   })
 })

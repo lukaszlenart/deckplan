@@ -29,9 +29,11 @@ export const en = {
 
   'inspector.connectionRoom': 'room – corridor connection',
   'inspector.connectionCorridor': 'corridor – corridor connection',
+  'inspector.doorUnconnected': 'room door – not connected',
+  'inspector.deleteDoor': 'Remove door',
   'inspector.placingBulkhead': 'Placing: {name}',
   'inspector.placingBulkheadHint':
-    'Click a connection marked with a circle. You can keep clicking. Esc finishes.',
+    'Click a red dot on a room wall to place a door, or a circle between corridors. You can keep clicking. Esc finishes.',
   'inspector.finish': 'Finish',
   'inspector.cancel': 'Cancel',
   'inspector.rotate': 'Rotate 90°',

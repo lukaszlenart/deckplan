@@ -31,9 +31,11 @@ export const pl: Messages = {
 
   'inspector.connectionRoom': 'połączenie pomieszczenie – korytarz',
   'inspector.connectionCorridor': 'połączenie korytarz – korytarz',
+  'inspector.doorUnconnected': 'drzwi pomieszczenia – bez połączenia',
+  'inspector.deleteDoor': 'Usuń drzwi',
   'inspector.placingBulkhead': 'Wstawianie: {name}',
   'inspector.placingBulkheadHint':
-    'Kliknij połączenie oznaczone kółkiem. Możesz klikać kolejne. Esc kończy.',
+    'Kliknij czerwoną kropkę na ścianie pomieszczenia, aby wstawić drzwi, albo kółko między korytarzami. Możesz klikać kolejne. Esc kończy.',
   'inspector.finish': 'Zakończ',
   'inspector.cancel': 'Anuluj',
   'inspector.rotate': 'Obróć 90°',

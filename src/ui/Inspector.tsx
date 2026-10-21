@@ -10,18 +10,22 @@ export function Inspector() {
   const localize = useLocalize()
   const plural = usePlural()
   const plan = store.plan.value
-  const { edges } = store.analysis.value
+  const { edges, doors } = store.analysis.value
   const edge = store.selectedEdge.value
   const info = edge ? edges.get(edge) : undefined
+  const door = edge ? doors.get(edge) : undefined
 
-  if (edge && info) {
-    const current = bulkheadAt(plan, edge, info)
+  if (edge && (info || door)) {
+    const current = door?.type ?? (info ? bulkheadAt(plan, edge, info) : 'open')
+    const kind = door
+      ? door.connected
+        ? 'inspector.connectionRoom'
+        : 'inspector.doorUnconnected'
+      : 'inspector.connectionCorridor'
     return (
       <div class="card">
         <div class="t">{t(`bulkhead.${current}`)}</div>
-        <div class="m">
-          {t(info.hasRoom ? 'inspector.connectionRoom' : 'inspector.connectionCorridor')}
-        </div>
+        <div class="m">{t(kind)}</div>
         <div class="row">
           {BULKHEAD_TYPES.map((type, i) => (
             <button
@@ -33,6 +37,13 @@ export function Inspector() {
             </button>
           ))}
         </div>
+        {door && (
+          <div class="row">
+            <button onClick={() => store.deleteSelected()}>
+              {t('inspector.deleteDoor')} <kbd>Del</kbd>
+            </button>
+          </div>
+        )}
       </div>
     )
   }

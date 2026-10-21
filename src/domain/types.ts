@@ -39,6 +39,22 @@ export type BulkheadType = (typeof BULKHEAD_TYPES)[number]
 /** "x,y,E" (right edge of cell x,y) or "x,y,S" (bottom edge). Diagonals have no edge key. */
 export type EdgeKey = string
 
+/** The four orthogonal directions, the only ones a room wall faces. */
+export type WallDir = 0 | 2 | 4 | 6
+
+/** A door on a room wall, in the room's own frame at rotation 0. */
+export interface Door {
+  x: number
+  y: number
+  dir: WallDir
+  type: BulkheadType
+}
+
+/** A door in board coordinates; `edge` is its wall segment. */
+export interface PlacedDoor extends Door {
+  edge: EdgeKey
+}
+
 export interface Piece {
   id: number
   module: ModuleId
@@ -48,6 +64,7 @@ export interface Piece {
   /** Own size at rotation 0; absent means the catalogue size. */
   w?: number
   h?: number
+  doors?: Door[]
 }
 
 export interface Size {

@@ -112,48 +112,92 @@
    "module": "M1",
    "x": 5,
    "y": 7,
-   "r": 0
+   "r": 0,
+   "doors": [
+    {
+     "x": 0,
+     "y": 0,
+     "dir": 4,
+     "type": "door"
+    }
+   ]
   },
   {
    "id": 17,
    "module": "T1",
    "x": 6,
    "y": 9,
-   "r": 0
+   "r": 0,
+   "doors": [
+    {
+     "x": 1,
+     "y": 0,
+     "dir": 0,
+     "type": "bulkhead"
+    }
+   ]
   },
   {
    "id": 18,
    "module": "O1",
    "x": 9,
    "y": 6,
-   "r": 0
+   "r": 0,
+   "doors": [
+    {
+     "x": 1,
+     "y": 1,
+     "dir": 4,
+     "type": "door"
+    }
+   ]
   },
   {
    "id": 19,
    "module": "O3",
    "x": 12,
    "y": 9,
-   "r": 2
+   "r": 2,
+   "doors": [
+    {
+     "x": 0,
+     "y": 0,
+     "dir": 4,
+     "type": "door"
+    }
+   ]
   },
   {
    "id": 20,
    "module": "M2",
    "x": 2,
    "y": 10,
-   "r": 2
+   "r": 2,
+   "doors": [
+    {
+     "x": 1,
+     "y": 1,
+     "dir": 4,
+     "type": "bulkhead"
+    }
+   ]
   },
   {
    "id": 21,
    "module": "T3",
    "x": 16,
    "y": 5,
-   "r": 0
+   "r": 0,
+   "doors": [
+    {
+     "x": 0,
+     "y": 0,
+     "dir": 4,
+     "type": "airlock"
+    }
+   ]
   }
  ],
- "bulkheads": {
-  "7,8,S": "bulkhead",
-  "16,5,S": "airlock",
-  "3,9,S": "bulkhead"
- },
+ "bulkheads": {},
  "nextId": 22
 }

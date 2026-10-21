@@ -1,6 +1,6 @@
-import { bulkheadAt, type EdgeInfo } from '../../domain/analysis'
+import { bulkheadAt, type DoorInfo, type EdgeInfo } from '../../domain/analysis'
 import { moduleDef } from '../../domain/catalogue'
-import { pieceShape } from '../../domain/geometry'
+import { pieceDoors, pieceShape } from '../../domain/geometry'
 import type { EdgeKey, Plan } from '../../domain/types'
 import { GRID } from '../../domain/types'
 import { BulkheadMark } from './BulkheadMark'
@@ -10,12 +10,13 @@ import { RoomShape } from './RoomShape'
 interface Props {
   plan: Plan
   edges: Map<EdgeKey, EdgeInfo>
+  doors: Map<EdgeKey, DoorInfo>
   /** Keeps grid pattern ids unique when several drawings share the page. */
   idPrefix: string
 }
 
 /** Background, grid, rooms, corridors and bulkheads: everything but the editor's hints. */
-export function PlanDrawing({ plan, edges, idPrefix }: Props) {
+export function PlanDrawing({ plan, edges, doors, idPrefix }: Props) {
   const minor = `${idPrefix}-g1`
   const major = `${idPrefix}-g5`
   return (
@@ -36,7 +37,7 @@ export function PlanDrawing({ plan, edges, idPrefix }: Props) {
           .filter((p) => moduleDef(p.module).kind === 'room')
           .map((p) => (
             <g key={p.id} class="piece" data-id={p.id}>
-              <RoomShape piece={p} shape={pieceShape(p)} />
+              <RoomShape piece={p} shape={pieceShape(p)} doors={pieceDoors(p)} />
             </g>
           ))}
       </g>
@@ -50,6 +51,11 @@ export function PlanDrawing({ plan, edges, idPrefix }: Props) {
             hasRoom={info.hasRoom}
           />
         ))}
+        {[...doors]
+          .filter(([, door]) => !door.connected)
+          .map(([key, door]) => (
+            <BulkheadMark key={key} edge={key} type={door.type} hasRoom />
+          ))}
       </g>
     </>
   )

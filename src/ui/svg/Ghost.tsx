@@ -1,4 +1,4 @@
-import { canPlace } from '../../domain/analysis'
+import { canPlace, freeWallSegments } from '../../domain/analysis'
 import { moduleDef } from '../../domain/catalogue'
 import { edgeCenter, pieceSize, placementOffset, resizePiece, shape } from '../../domain/geometry'
 import type { Size } from '../../domain/types'
@@ -16,6 +16,20 @@ export function Ghost() {
     const active = bulkheadDrag ? drag.edge : store.hoverEdge.value
     return (
       <>
+        {freeWallSegments(store.plan.value).map((key) => {
+          const [cx, cy] = edgeCenter(key)
+          return (
+            <circle
+              key={`w${key}`}
+              cx={cx}
+              cy={cy}
+              r={key === active ? '.17' : '.11'}
+              fill="var(--bad)"
+              stroke={key === active ? 'var(--bh-door)' : 'none'}
+              stroke-width=".05"
+            />
+          )
+        })}
         {[...store.analysis.value.edges.keys()].map((key) => {
           const [cx, cy] = edgeCenter(key)
           const on = key === active

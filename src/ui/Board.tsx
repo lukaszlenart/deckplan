@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks'
 import { edgeCenter, isResizable, pieceShape, placementOffset, portPoint } from '../domain/geometry'
-import { GRID } from '../domain/types'
+import { freeWallSegments } from '../domain/analysis'
+import { GRID, type EdgeKey } from '../domain/types'
 import {
   beginMoveDrag,
   beginResizeDrag,
@@ -19,6 +20,12 @@ import { PlanDrawing } from './svg/PlanDrawing'
 const CLICK_SUPPRESS_MS = 50
 /** Smallest on-screen size of the resize grip's hit area. */
 const GRIP_HIT_PX = 32
+
+/** Every place a bulkhead tool can act on: connections, placed doors and free room walls. */
+const bulkheadTargets = (): Set<EdgeKey> => {
+  const { edges, doors } = store.analysis.value
+  return new Set([...edges.keys(), ...doors.keys(), ...freeWallSegments(store.plan.value)])
+}
 
 export function Board() {
   const t = useT()
@@ -39,7 +46,7 @@ export function Board() {
   const edgeUnder = (e: PointerEvent) => {
     const b = boxes()
     if (!b || !cellAt(b.board, b.wrap, e)) return null
-    return nearestEdge(b.board, store.analysis.value.edges.keys(), e)
+    return nearestEdge(b.board, bulkheadTargets(), e)
   }
 
   useEffect(() => {
@@ -187,7 +194,12 @@ export function Board() {
           if (!store.drag.value) store.hoverCell.value = null
         }}
       >
-        <PlanDrawing plan={plan} edges={edges} idPrefix="board" />
+        <PlanDrawing
+          plan={plan}
+          edges={edges}
+          doors={store.analysis.value.doors}
+          idPrefix="board"
+        />
         <g pointer-events="none">
           {open.map((o) => {
             const [X, Y] = portPoint(o.x, o.y, o.dir)
