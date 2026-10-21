@@ -1,4 +1,4 @@
-import type { ModuleId, Piece, Plan, Rotation } from './types'
+import type { Door, ModuleId, Piece, Plan, Rotation } from './types'
 
 const LAYOUT: [ModuleId, number, number, Rotation][] = [
   ['K1', 4, 8, 1],
@@ -24,14 +24,26 @@ const LAYOUT: [ModuleId, number, number, Rotation][] = [
   ['T3', 16, 5, 0],
 ]
 
+const DOORS: Record<number, Door[]> = {
+  16: [{ x: 0, y: 0, dir: 4, type: 'door' }],
+  17: [{ x: 1, y: 0, dir: 0, type: 'bulkhead' }],
+  18: [{ x: 1, y: 1, dir: 4, type: 'door' }],
+  19: [{ x: 0, y: 0, dir: 4, type: 'door' }],
+  20: [{ x: 1, y: 1, dir: 4, type: 'bulkhead' }],
+  21: [{ x: 0, y: 0, dir: 4, type: 'airlock' }],
+}
+
 /** The demo station shown on first run. Keep in sync with `examples/kestrel-4.json`. */
 export function samplePlan(name: string): Plan {
-  const pieces: Piece[] = LAYOUT.map(([module, x, y, r], i) => ({ id: i + 1, module, x, y, r }))
+  const pieces: Piece[] = LAYOUT.map(([module, x, y, r], i) => {
+    const doors = DOORS[i + 1]
+    return doors ? { id: i + 1, module, x, y, r, doors } : { id: i + 1, module, x, y, r }
+  })
   return {
     schemaVersion: 1,
     name,
     pieces,
-    bulkheads: { '7,8,S': 'bulkhead', '16,5,S': 'airlock', '3,9,S': 'bulkhead' },
+    bulkheads: {},
     nextId: pieces.length + 1,
   }
 }

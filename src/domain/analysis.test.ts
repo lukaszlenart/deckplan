@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { analyze, bulkheadAt, canPlace, occupancy, planBounds, pruneBulkheads } from './analysis'
+import {
+  analyze,
+  bulkheadAt,
+  canPlace,
+  freeWallSegments,
+  occupancy,
+  planBounds,
+  pruneBulkheads,
+} from './analysis'
 import { samplePlan } from './sample'
 import { makePlan } from './testing'
+import type { Piece } from './types'
 
 describe('analyze', () => {
   it('connects two facing corridors on one edge', () => {
@@ -23,14 +32,15 @@ describe('analyze', () => {
     expect(a.fragments).toBe(1)
   })
 
-  it('room to corridor edge defaults to door, corridor to corridor to open', () => {
+  it('a room edge takes its door type, a corridor edge defaults to open', () => {
     const plan = makePlan([
-      { module: 'M1', x: 0, y: 0, r: 0 },
+      { module: 'M1', x: 0, y: 0, r: 0, doors: [{ x: 0, y: 0, dir: 4, type: 'door' }] },
       { module: 'K1', x: 0, y: 1, r: 0 },
     ])
     const a = analyze(plan)
-    expect(a.edges.get('0,0,S')).toEqual({ hasRoom: true })
-    expect(bulkheadAt(plan, '0,0,S', { hasRoom: true })).toBe('door')
+    const info = a.edges.get('0,0,S')
+    expect(info).toEqual({ hasRoom: true, door: { pieceId: 1, type: 'door' } })
+    expect(info && bulkheadAt(plan, '0,0,S', info)).toBe('door')
     expect(bulkheadAt(plan, '0,0,S', { hasRoom: false })).toBe('open')
     expect(a.open).toEqual([{ x: 0, y: 1, dir: 4, room: false }])
   })
@@ -53,11 +63,6 @@ describe('analyze', () => {
     ])
     expect(analyze(plan).fragments).toBe(2)
     expect(analyze(makePlan([])).fragments).toBe(0)
-  })
-
-  it('reports room open ports with room: true', () => {
-    const a = analyze(makePlan([{ module: 'M1', x: 3, y: 3, r: 0 }]))
-    expect(a.open).toEqual([{ x: 3, y: 3, dir: 4, room: true }])
   })
 })
 
@@ -103,6 +108,23 @@ describe('samplePlan', () => {
       expect(canPlace(others, p.module, p.r, p.x, p.y), `piece ${p.id}`).toBe(true)
     }
     expect(Object.keys(plan.bulkheads).every((k) => a.edges.has(k))).toBe(true)
+    const roomEdges = [...a.edges]
+      .filter(([, i]) => i.door)
+      .map(([k, i]) => `${k}=${bulkheadAt(plan, k, i)}`)
+      .sort()
+    expect(roomEdges).toEqual(
+      [
+        '5,7,S=door',
+        '7,8,S=bulkhead',
+        '10,7,S=door',
+        '13,8,S=door',
+        '16,5,S=airlock',
+        '3,9,S=bulkhead',
+      ].sort(),
+    )
+    expect(a.edges.size).toBe(18)
+    expect(a.open).toEqual([])
+    expect(plan.bulkheads).toEqual({})
   })
 })
 
@@ -132,7 +154,15 @@ describe('planBounds', () => {
 describe('resized pieces', () => {
   it('a resized room occupies and connects at its new size', () => {
     const plan = makePlan([
-      { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 3 },
+      {
+        module: 'O4',
+        x: 0,
+        y: 0,
+        r: 0,
+        w: 6,
+        h: 3,
+        doors: [{ x: 0, y: 2, dir: 4, type: 'door' }],
+      },
       { module: 'K1', x: 0, y: 3, r: 0 },
     ])
     expect(occupancy(plan).get('5,2')).toBe(1)
@@ -145,5 +175,57 @@ describe('resized pieces', () => {
     const plan = makePlan([{ module: 'M1', x: 5, y: 0, r: 0 }])
     expect(canPlace(plan, 'O4', 0, 0, 0)).toBe(true)
     expect(canPlace(plan, 'O4', 0, 0, 0, undefined, { w: 6, h: 2 })).toBe(false)
+  })
+})
+
+describe('placed door connections', () => {
+  const corridorUp = { module: 'K1', x: 0, y: 2, r: 0 as const }
+  const cabin = (doors?: Piece['doors']) => ({ module: 'M1', x: 0, y: 1, r: 0 as const, doors })
+
+  it('a corridor meets a room only at a door', () => {
+    const walled = analyze(makePlan([cabin(), corridorUp]))
+    expect(walled.edges.size).toBe(0)
+    expect(walled.fragments).toBe(2)
+    expect(walled.open).toContainEqual({ x: 0, y: 2, dir: 0, room: false })
+    const doored = analyze(
+      makePlan([cabin([{ x: 0, y: 0, dir: 4, type: 'bulkhead' }]), corridorUp]),
+    )
+    expect(doored.edges.get('0,1,S')?.door).toEqual({ pieceId: 1, type: 'bulkhead' })
+    expect(doored.fragments).toBe(1)
+  })
+
+  it('two rooms connect through one door on their shared wall', () => {
+    const a = analyze(
+      makePlan([
+        { module: 'M1', x: 0, y: 0, r: 0, doors: [{ x: 0, y: 0, dir: 2, type: 'door' }] },
+        { module: 'M1', x: 1, y: 0, r: 0 },
+      ]),
+    )
+    expect(a.fragments).toBe(1)
+    expect(a.doors.get('0,0,E')).toEqual({ pieceId: 1, type: 'door', connected: true })
+  })
+
+  it('an unconnected door is drawn, not reported open', () => {
+    const a = analyze(makePlan([cabin([{ x: 0, y: 0, dir: 2, type: 'welded' }])]))
+    expect(a.open).toEqual([])
+    expect(a.doors.get('0,1,E')).toEqual({ pieceId: 1, type: 'welded', connected: false })
+  })
+
+  it('free wall segments exclude doors and count shared segments once', () => {
+    const plan = makePlan([
+      { module: 'M1', x: 0, y: 0, r: 0, doors: [{ x: 0, y: 0, dir: 4, type: 'door' }] },
+      { module: 'M1', x: 1, y: 0, r: 0 },
+    ])
+    const free = freeWallSegments(plan)
+    expect(free).not.toContain('0,0,S')
+    expect(free.filter((k) => k === '0,0,E')).toHaveLength(1)
+    expect(free).toHaveLength(6)
+  })
+
+  it('pruneBulkheads drops keys on room edges', () => {
+    const plan = makePlan([cabin([{ x: 0, y: 0, dir: 4, type: 'door' }]), corridorUp], {
+      '0,1,S': 'airlock',
+    })
+    expect(pruneBulkheads(plan).bulkheads).toEqual({})
   })
 })
