@@ -15,14 +15,13 @@ import {
 import type { Piece } from './types'
 
 describe('geometry', () => {
-  it('rotates an L-shaped room clockwise', () => {
-    const s = shape('O2', 1)
-    expect(s.w).toBe(2)
+  it('rotates a room clockwise', () => {
+    const s = shape('O3', 1)
+    expect(s.w).toBe(1)
     expect(s.h).toBe(2)
     expect(s.cells).toEqual([
-      [1, 0],
-      [1, 1],
       [0, 0],
+      [0, 1],
     ])
     expect(s.ports).toEqual([])
   })
@@ -66,6 +65,7 @@ describe('resizable shapes', () => {
       'M2',
       'M3',
       'O1',
+      'O2',
       'O3',
       'O4',
       'T1',

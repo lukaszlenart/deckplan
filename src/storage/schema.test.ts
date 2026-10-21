@@ -61,7 +61,7 @@ describe('PlanSchema', () => {
     expect(() => parsePlan(at({ w: 41, h: 2 }))).toThrow()
     expect(() => parsePlan(at({ w: 6, h: 29 }))).toThrow()
     expect(() => parsePlan(at({ w: 6 }))).toThrow()
-    expect(() => parsePlan(makePlan([{ module: 'O2', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow()
+    expect(() => parsePlan(makePlan([{ module: 'K1', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow()
     expect(() => parsePlan(makePlan([{ module: 'Z9', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow(
       ZodError,
     )
