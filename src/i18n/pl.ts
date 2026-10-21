@@ -26,6 +26,9 @@ export const pl: Messages = {
   'bulkhead.welded': 'Zaspawane',
   'bulkhead.title': '{name} (kliknij, aby zmienić)',
 
+  'board.size': '{w}×{h}',
+  'board.resizeGrip': 'Zmień rozmiar',
+
   'inspector.connectionRoom': 'połączenie pomieszczenie – korytarz',
   'inspector.connectionCorridor': 'połączenie korytarz – korytarz',
   'inspector.placingBulkhead': 'Wstawianie: {name}',
