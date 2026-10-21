@@ -132,10 +132,16 @@ describe('resize drag', () => {
     expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 6, h: 3 })
   })
 
-  it('clamps to 1×1 above or left of the origin', () => {
+  it('clamps to the catalogue size above or left of the origin', () => {
     let d = beginResizeDrag(hangar, { x: 160, y: 90 })
     d = moveDrag(d, { x: 100, y: 50 }, [0, 0], null)
-    expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 1, h: 1 })
+    expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 4, h: 2 })
+  })
+
+  it('clamps a rotated room to its turned catalogue size', () => {
+    let d = beginResizeDrag({ ...hangar, r: 1 }, { x: 160, y: 90 })
+    d = moveDrag(d, { x: 100, y: 50 }, [0, 0], null)
+    expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 2, h: 4 })
   })
 
   it('starts at the current screen size of a rotated, resized room', () => {

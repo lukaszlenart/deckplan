@@ -61,6 +61,11 @@ describe('PlanSchema', () => {
     expect(() => parsePlan(at({ w: 41, h: 2 }))).toThrow()
     expect(() => parsePlan(at({ w: 6, h: 29 }))).toThrow()
     expect(() => parsePlan(at({ w: 6 }))).toThrow()
+    expect(() => parsePlan(at({ w: 3, h: 2 }))).toThrow()
+    expect(() => parsePlan(at({ w: 4, h: 1 }))).toThrow()
+    expect(() =>
+      parsePlan(makePlan([{ module: 'O4', x: 0, y: 0, r: 1, w: 4, h: 2 }])),
+    ).not.toThrow()
     expect(() => parsePlan(makePlan([{ module: 'K1', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow()
     expect(() => parsePlan(makePlan([{ module: 'Z9', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow(
       ZodError,
@@ -69,9 +74,9 @@ describe('PlanSchema', () => {
 
   it('caps sizes by the screen size of rotated rooms', () => {
     const at = (r: 0 | 1, w: number, h: number) => makePlan([{ module: 'O4', x: 0, y: 0, r, w, h }])
-    expect(parsePlan(at(1, 2, 30)).pieces[0]).toMatchObject({ w: 2, h: 30 })
-    expect(() => parsePlan(at(1, 29, 2))).toThrow()
-    expect(() => parsePlan(at(0, 2, 30))).toThrow()
+    expect(parsePlan(at(1, 4, 30)).pieces[0]).toMatchObject({ w: 4, h: 30 })
+    expect(() => parsePlan(at(1, 29, 4))).toThrow()
+    expect(() => parsePlan(at(0, 4, 30))).toThrow()
   })
 
   it('accepts doors on room walls', () => {
