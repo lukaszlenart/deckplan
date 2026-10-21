@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { samplePlan } from '../domain/sample'
 import { freeWallSegments } from '../domain/analysis'
 import { makePlan } from '../domain/testing'
+import type { Plan } from '../domain/types'
 import { LocalStorageRepo, STORAGE_KEY } from '../storage/localStorageRepo'
 import { MemoryStorage } from '../storage/memoryStorage'
-import { importPlan } from '../storage/backup'
+import { exportPlan, importPlan } from '../storage/backup'
 import { createStore, HISTORY_LIMIT } from './store'
 
 const quiet = { warn: () => {} }
@@ -293,5 +294,52 @@ describe('store', () => {
       ),
     )
     expect(store.plan.value.bulkheads).toEqual({})
+  })
+
+  describe('a room moved onto another room door drops its own clashing door', () => {
+    const rooms = () =>
+      makePlan([
+        { module: 'M1', x: 5, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 2, type: 'door' }] },
+        { module: 'M1', x: 8, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 6, type: 'welded' }] },
+      ])
+    const exportable = (plan: Plan) => importPlan(exportPlan(plan)).ok
+
+    it('movePiece', () => {
+      const { store } = setup()
+      store.loadPlan(rooms())
+      expect(store.movePiece(2, 6, 5, 0)).toBe(true)
+      expect(store.plan.value.pieces[1]?.doors ?? []).toEqual([])
+      expect(store.analysis.value.doors.get('5,5,E')).toMatchObject({ pieceId: 1, type: 'door' })
+      expect(exportable(store.plan.value)).toBe(true)
+    })
+
+    it('rotateSelected', () => {
+      const { store } = setup()
+      store.loadPlan(
+        makePlan([
+          { module: 'M1', x: 5, y: 5, r: 0, doors: [{ x: 0, y: 0, dir: 2, type: 'door' }] },
+          { module: 'M1', x: 6, y: 5, r: 1, doors: [{ x: 0, y: 0, dir: 2, type: 'welded' }] },
+        ]),
+      )
+      store.selectPiece(2)
+      store.rotateSelected()
+      expect(store.plan.value.pieces[1]).toMatchObject({ r: 2 })
+      expect(store.plan.value.pieces[1]?.doors ?? []).toEqual([])
+      expect(exportable(store.plan.value)).toBe(true)
+    })
+
+    it('resizePiece', () => {
+      const { store } = setup()
+      store.loadPlan(
+        makePlan([
+          { module: 'O4', x: 10, y: 10, r: 0, doors: [{ x: 3, y: 0, dir: 2, type: 'airlock' }] },
+          { module: 'M1', x: 15, y: 10, r: 0, doors: [{ x: 0, y: 0, dir: 6, type: 'door' }] },
+        ]),
+      )
+      expect(store.resizePiece(1, 5, 2)).toBe(true)
+      expect(store.plan.value.pieces[0]?.doors ?? []).toEqual([])
+      expect(store.analysis.value.doors.get('14,10,E')).toMatchObject({ pieceId: 2, type: 'door' })
+      expect(exportable(store.plan.value)).toBe(true)
+    })
   })
 })

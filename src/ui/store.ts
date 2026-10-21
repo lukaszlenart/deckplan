@@ -1,5 +1,11 @@
 import { computed, signal, type ReadonlySignal, type Signal } from '@preact/signals'
-import { analyze, canPlace, pruneBulkheads, type Analysis } from '../domain/analysis'
+import {
+  analyze,
+  canPlace,
+  dropDoorClashes,
+  pruneBulkheads,
+  type Analysis,
+} from '../domain/analysis'
 import { doorAt, nextRotation, pieceSize, resizePiece } from '../domain/geometry'
 import { samplePlan } from '../domain/sample'
 import type {
@@ -195,7 +201,7 @@ export function createStore(
       }
       snapshot()
       const pieces = current.pieces.map((p) => (p.id === id ? { ...p, x, y, r } : p))
-      commit(pruneBulkheads({ ...current, pieces }))
+      commit(pruneBulkheads(dropDoorClashes({ ...current, pieces }, id)))
       selected.value = id
       selectedEdge.value = null
       return true
@@ -212,7 +218,7 @@ export function createStore(
       }
       snapshot()
       const pieces = current.pieces.map((p) => (p.id === piece.id ? { ...p, r } : p))
-      commit(pruneBulkheads({ ...current, pieces }))
+      commit(pruneBulkheads(dropDoorClashes({ ...current, pieces }, piece.id)))
     },
 
     resizePiece(id, w, h) {
@@ -227,7 +233,7 @@ export function createStore(
       }
       snapshot()
       const pieces = current.pieces.map((p) => (p.id === id ? next : p))
-      commit(pruneBulkheads({ ...current, pieces }))
+      commit(pruneBulkheads(dropDoorClashes({ ...current, pieces }, id)))
       return true
     },
 

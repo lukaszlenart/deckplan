@@ -142,6 +142,19 @@ export function freeWallSegments(plan: Plan): EdgeKey[] {
   return [...free]
 }
 
+/** Drops doors of piece `id` that sit on a segment where another room already has a door. */
+export function dropDoorClashes(plan: Plan, id: number): Plan {
+  const piece = plan.pieces.find((p) => p.id === id)
+  if (!piece?.doors?.length) return plan
+  const taken = new Set(
+    plan.pieces.filter((p) => p.id !== id).flatMap((p) => pieceDoors(p).map((d) => d.edge)),
+  )
+  const placed = pieceDoors(piece)
+  const doors = piece.doors.filter((_, i) => !taken.has(placed[i]?.edge ?? ''))
+  if (doors.length === piece.doors.length) return plan
+  return { ...plan, pieces: plan.pieces.map((p) => (p.id === id ? { ...p, doors } : p)) }
+}
+
 /** Returns a plan without bulkheads whose edge no longer exists. */
 export function pruneBulkheads(plan: Plan): Plan {
   const { edges } = analyze(plan)
