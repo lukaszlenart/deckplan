@@ -18,8 +18,9 @@ describe('catalogue', () => {
     }
   })
 
-  it('every module has at least one port', () => {
-    for (const def of Object.values(MODULES)) expect(def.ports.length, def.id).toBeGreaterThan(0)
+  it('every corridor has at least one port', () => {
+    for (const def of Object.values(MODULES))
+      if (def.kind === 'corridor') expect(def.ports.length, def.id).toBeGreaterThan(0)
   })
 
   it('rooms have a class and a short label, corridors have neither', () => {
@@ -49,10 +50,6 @@ describe('catalogue', () => {
       [0, 0],
       [1, 0],
       [0, 1],
-    ])
-    expect(MODULES.T1?.ports).toEqual([
-      [0, 3, 4],
-      [1, 0, 0],
     ])
     expect(MODULES.T3?.ext).toEqual([[0, 0, 0]])
     expect(MODULES.K8?.ports).toEqual([

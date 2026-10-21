@@ -28,9 +28,8 @@ const room = (
   cls: RoomClass,
   short: Localized,
   cells: Cell[],
-  ports: Port[],
   ext: Port[] = [],
-): ModuleDef => ({ id, code: `WY-${id}`, kind: 'room', name, short, cls, cells, ports, ext })
+): ModuleDef => ({ id, code: `WY-${id}`, kind: 'room', name, short, cls, cells, ports: [], ext })
 
 const rect = (w: number, h: number): Cell[] => {
   const cells: Cell[] = []
@@ -57,58 +56,24 @@ group('corridors', l('Corridors', 'Korytarze'), [
   corridor('K9', l('End cap', 'Zaślepka'), [4]),
 ])
 group('habitation', l('Habitation', 'Mieszkalne'), [
-  room('M1', l('Cabin', 'Kajuta'), 'hab', l('Cabin', 'Kajuta'), [[0, 0]], [[0, 0, 4]]),
-  room('M2', l('Mess hall', 'Mesa'), 'hab', l('Mess hall', 'Mesa'), rect(3, 2), [
-    [1, 1, 4],
-    [0, 0, 6],
-    [2, 0, 2],
-  ]),
-  room('M3', l('Sickbay', 'Ambulatorium'), 'hab', l('Sickbay', 'Ambulatorium'), rect(2, 2), [
-    [0, 1, 4],
-    [0, 0, 6],
-  ]),
+  room('M1', l('Cabin', 'Kajuta'), 'hab', l('Cabin', 'Kajuta'), [[0, 0]]),
+  room('M2', l('Mess hall', 'Mesa'), 'hab', l('Mess hall', 'Mesa'), rect(3, 2)),
+  room('M3', l('Sickbay', 'Ambulatorium'), 'hab', l('Sickbay', 'Ambulatorium'), rect(2, 2)),
 ])
 group('operations', l('Operations', 'Operacyjne'), [
-  room('O1', l('Bridge', 'Mostek'), 'ops', l('Bridge', 'Mostek'), rect(3, 2), [[1, 1, 4]]),
-  room(
-    'O2',
-    l('Laboratory', 'Laboratorium'),
-    'ops',
-    l('Lab', 'Lab.'),
-    [
-      [0, 0],
-      [1, 0],
-      [0, 1],
-    ],
-    [
-      [0, 1, 4],
-      [1, 0, 2],
-    ],
-  ),
-  room('O3', l('Storage', 'Magazyn'), 'ops', l('Storage', 'Magazyn'), rect(2, 1), [[0, 0, 4]]),
-  room('O4', l('Hangar', 'Hangar'), 'ops', l('Hangar', 'Hangar'), rect(4, 2), [
-    [0, 1, 4],
-    [3, 1, 4],
+  room('O1', l('Bridge', 'Mostek'), 'ops', l('Bridge', 'Mostek'), rect(3, 2)),
+  room('O2', l('Laboratory', 'Laboratorium'), 'ops', l('Lab', 'Lab.'), [
+    [0, 0],
+    [1, 0],
+    [0, 1],
   ]),
+  room('O3', l('Storage', 'Magazyn'), 'ops', l('Storage', 'Magazyn'), rect(2, 1)),
+  room('O4', l('Hangar', 'Hangar'), 'ops', l('Hangar', 'Hangar'), rect(4, 2)),
 ])
 group('technical', l('Technical', 'Techniczne'), [
-  room('T1', l('Reactor', 'Reaktor'), 'tech', l('Reactor', 'Reaktor'), rect(2, 4), [
-    [0, 3, 4],
-    [1, 0, 0],
-  ]),
-  room('T2', l('Hydroponics', 'Hydroponika'), 'tech', l('Hydroponics', 'Hydroponika'), rect(4, 1), [
-    [0, 0, 6],
-    [3, 0, 2],
-  ]),
-  room(
-    'T3',
-    l('Airlock', 'Śluza'),
-    'tech',
-    l('Airlock', 'Śluza'),
-    [[0, 0]],
-    [[0, 0, 4]],
-    [[0, 0, 0]],
-  ),
+  room('T1', l('Reactor', 'Reaktor'), 'tech', l('Reactor', 'Reaktor'), rect(2, 4)),
+  room('T2', l('Hydroponics', 'Hydroponika'), 'tech', l('Hydroponics', 'Hydroponika'), rect(4, 1)),
+  room('T3', l('Airlock', 'Śluza'), 'tech', l('Airlock', 'Śluza'), [[0, 0]], [[0, 0, 0]]),
 ])
 
 export const MODULES: Readonly<Record<ModuleId, ModuleDef>> = defs
