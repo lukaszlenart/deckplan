@@ -66,4 +66,11 @@ describe('PlanSchema', () => {
       ZodError,
     )
   })
+
+  it('caps sizes by the screen size of rotated rooms', () => {
+    const at = (r: 0 | 1, w: number, h: number) => makePlan([{ module: 'O4', x: 0, y: 0, r, w, h }])
+    expect(parsePlan(at(1, 2, 30)).pieces[0]).toMatchObject({ w: 2, h: 30 })
+    expect(() => parsePlan(at(1, 29, 2))).toThrow()
+    expect(() => parsePlan(at(0, 2, 30))).toThrow()
+  })
 })

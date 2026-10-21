@@ -14,10 +14,15 @@ const PieceSchema = z
     x: int,
     y: int,
     r: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]),
-    w: int.min(1).max(GRID.width).optional(),
-    h: int.min(1).max(GRID.height).optional(),
+    w: int.min(1).optional(),
+    h: int.min(1).optional(),
   })
   .refine((p) => (p.w === undefined) === (p.h === undefined), 'w and h go together')
+  .refine((p) => {
+    if (p.w === undefined || p.h === undefined) return true
+    const [screenW, screenH] = p.r % 2 === 0 ? [p.w, p.h] : [p.h, p.w]
+    return screenW <= GRID.width && screenH <= GRID.height
+  }, 'larger than the grid')
   .refine(
     (p) => p.w === undefined || (isModuleId(p.module) && isResizable(p.module)),
     'module cannot be resized',
