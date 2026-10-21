@@ -45,6 +45,14 @@ export interface Piece {
   x: number
   y: number
   r: Rotation
+  /** Own size at rotation 0; absent means the catalogue size. */
+  w?: number
+  h?: number
+}
+
+export interface Size {
+  w: number
+  h: number
 }
 
 export interface Plan {
