@@ -40,18 +40,18 @@ The mockup lives in
 `.superpowers/brainstorm/57794-1792593672/content/all-rooms.html`. It is not committed, so treat its
 SVG as a reference to copy from, not as a contract. The user approved it with "looks good".
 
-| Module | Room | Size | Sketch |
-|---|---|---|---|
-| M1 | Cabin | 1×1 | bunk with pillow, locker |
-| M2 | Mess hall | 3×2 | galley counter on the top wall, two tables with benches, a second counter row |
-| M3 | Sickbay | 2×2 | two beds in the top corners, surgery table with a cross, two med carts |
-| O1 | Bridge | 3×2 | viewscreen along the top wall, curved console arc, command chair, two side consoles |
-| O2 | Laboratory | 2×2 | L-shaped bench along two walls, sample racks, round specimen tank |
-| O3 | Storage | 2×1 | four crosshatched crates at the short walls, a shelf |
-| O4 | Hangar | 4×2 | shuttle silhouette, dashed pad line, dashed bay-door marking on the right wall, corner marks |
-| T1 | Reactor | 2×4 | concentric core rings, coolant pipes running into the top and bottom walls |
-| T2 | Hydroponics | 4×1 | two planter rows with plants |
-| T3 | Airlock | 1×1 | inner and outer hatch lines, suit racks |
+| Module | Room        | Size | Sketch                                                                                       |
+| ------ | ----------- | ---- | -------------------------------------------------------------------------------------------- |
+| M1     | Cabin       | 1×1  | bunk with pillow, locker                                                                     |
+| M2     | Mess hall   | 3×2  | galley counter on the top wall, two tables with benches, a second counter row                |
+| M3     | Sickbay     | 2×2  | two beds in the top corners, surgery table with a cross, two med carts                       |
+| O1     | Bridge      | 3×2  | viewscreen along the top wall, curved console arc, command chair, two side consoles          |
+| O2     | Laboratory  | 2×2  | L-shaped bench along two walls, sample racks, round specimen tank                            |
+| O3     | Storage     | 2×1  | four crosshatched crates at the short walls, a shelf                                         |
+| O4     | Hangar      | 4×2  | shuttle silhouette, dashed pad line, dashed bay-door marking on the right wall, corner marks |
+| T1     | Reactor     | 2×4  | concentric core rings, coolant pipes running into the top and bottom walls                   |
+| T2     | Hydroponics | 4×1  | two planter rows with plants                                                                 |
+| T3     | Airlock     | 1×1  | inner and outer hatch lines, suit racks                                                      |
 
 The name and code are drawn over the sketch, centred as they are today, with a halo in the board
 colour (`paint-order: stroke`) so they stay readable where they cross a line. The user wanted to

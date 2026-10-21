@@ -33,12 +33,14 @@
 ### Task 1: Lab becomes a 2×2 rectangle
 
 **Files:**
+
 - Modify: `src/domain/catalogue.ts` (the `O2` entry)
 - Modify: `src/domain/catalogue.test.ts` (`keeps the legacy shapes`)
 - Modify: `src/domain/geometry.test.ts` (`rotates an L-shaped room clockwise`, `lists every outer wall segment of a room`)
 - Modify: `src/storage/schema.test.ts` (`rejects bad sizes`)
 
 **Interfaces:**
+
 - Produces: `MODULES.O2.cells` equals `rect(2, 2)`; `isResizable('O2') === true`.
 
 - [ ] **Step 1: Update the tests to the new shape**
@@ -92,12 +94,14 @@ Expected: PASS. If an `analysis` or `store` test relied on the L-shape, adapt it
 ### Task 2: Catalogue size is the minimum size
 
 **Files:**
+
 - Modify: `src/domain/geometry.ts` (new `minScreenSize`, `resizePiece` clamp)
 - Modify: `src/ui/pointer.ts` (resize `DragState` gets `minW`/`minH`; `beginResizeDrag`, `moveDrag`)
 - Modify: `src/storage/schema.ts` (`PieceSchema` refine)
 - Test: `src/domain/geometry.test.ts`, `src/ui/pointer.test.ts`, `src/storage/schema.test.ts`
 
 **Interfaces:**
+
 - Produces: `minScreenSize(id: ModuleId, r: Rotation): Size` in `geometry.ts` — `baseSize(id)` with `w`/`h` swapped for odd `r`.
 
 - [ ] **Step 1: Write the failing tests**
@@ -139,9 +143,7 @@ it('clamps a rotated room to its turned catalogue size', () => {
 ```ts
 expect(() => parsePlan(at({ w: 3, h: 2 }))).toThrow()
 expect(() => parsePlan(at({ w: 4, h: 1 }))).toThrow()
-expect(() =>
-  parsePlan(makePlan([{ module: 'O4', x: 0, y: 0, r: 1, w: 4, h: 2 }])),
-).not.toThrow()
+expect(() => parsePlan(makePlan([{ module: 'O4', x: 0, y: 0, r: 1, w: 4, h: 2 }]))).not.toThrow()
 ```
 
 (`w`/`h` are stored in the module's own frame, so rotation does not change the check.)
@@ -167,10 +169,12 @@ Expected: FAIL — `minScreenSize` not exported; drag resolves 1×1; schema acce
 ### Task 3: Sketch frame transform
 
 **Files:**
+
 - Create: `src/ui/svg/sketchFrame.ts`
 - Test: `src/ui/svg/sketchFrame.test.ts`
 
 **Interfaces:**
+
 - Produces: `sketchTransform(x: number, y: number, r: Rotation, size: Size, base: Size): string` — an SVG `transform` that maps the module's own frame at catalogue size `base` onto the board, with `(x, y)` the top-left of the rotated bounding box and `size` the piece size in its own frame (rotation 0). Also `applySketchTransform(...same, point: [number, number]): [number, number]` used only by the tests, applying the same maths numerically, so the string and the maths cannot drift.
 
 Maths: centre offset `dx = (size.w − base.w) / 2`, `dy = (size.h − base.h) / 2`; then rotate clockwise `r` quarter turns inside a `size.w × size.h` box: `(u, v) → r=1: (size.h − v, u)`, `r=2: (size.w − u, size.h − v)`, `r=3: (v, size.w − u)`; then add `(x, y)`. Emit as `translate(…) rotate(90·r) translate(dx dy)` with the rotation's translation folded into the first translate (`r=1: (h, 0)`, `r=2: (w, h)`, `r=3: (0, w)`).
@@ -212,6 +216,7 @@ it('emits the transform the maths describes', () => {
 ### Task 4: Sketches drawn in every room
 
 **Files:**
+
 - Create: `src/ui/svg/roomSketches.tsx`
 - Test: `src/ui/svg/roomSketches.test.ts`
 - Modify: `src/ui/svg/RoomShape.tsx` (props + drawing order + label halo)
@@ -219,6 +224,7 @@ it('emits the transform the maths describes', () => {
 - Modify: `src/styles/app.css`, `src/styles/print.css` (tokens)
 
 **Interfaces:**
+
 - Consumes: `sketchTransform` (Task 3); `baseSize`, `pieceSize` from `geometry.ts`.
 - Produces: `ROOM_SKETCHES: Readonly<Record<ModuleId, () => JSX.Element>>` — each fragment in the module's own frame, `0…base.w × 0…base.h`, strokes only via `class`/`stroke="currentColor"` so the colour comes from the wrapping `<g>`.
 
@@ -226,7 +232,10 @@ it('emits the transform the maths describes', () => {
 
 ```ts
 it('has a sketch for every room and nothing else', () => {
-  const rooms = Object.values(MODULES).filter((d) => d.kind === 'room').map((d) => d.id).sort()
+  const rooms = Object.values(MODULES)
+    .filter((d) => d.kind === 'room')
+    .map((d) => d.id)
+    .sort()
   expect(Object.keys(ROOM_SKETCHES).sort()).toEqual(rooms)
 })
 ```
@@ -257,6 +266,7 @@ Port the geometry from the approved mockup
 - [ ] **Step 8: Verify by hand** (`npm run dev`, http://localhost:5173)
 
 Check, and screenshot for the PR:
+
 1. Every room placed once on the board — each recognisable, label readable over it.
 2. The same rooms rotated 90°, 180°, 270° — sketch turns, label upright, nothing crosses a wall.
 3. A Reactor resized to 4×6 — sketch at catalogue size, centred.
