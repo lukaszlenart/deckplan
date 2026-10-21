@@ -1,6 +1,6 @@
 import { bulkheadAt } from '../domain/analysis'
 import { moduleDef } from '../domain/catalogue'
-import { shape } from '../domain/geometry'
+import { pieceShape } from '../domain/geometry'
 import { BULKHEAD_TYPES } from '../domain/types'
 import { useLocalize, usePlural, useT } from '../i18n'
 import { store } from './store'
@@ -53,7 +53,7 @@ export function Inspector() {
   const piece = plan.pieces.find((p) => p.id === store.selected.value)
   if (piece) {
     const d = moduleDef(piece.module)
-    const cells = shape(piece.module, piece.r).cells.length
+    const cells = pieceShape(piece).cells.length
     return (
       <div class="card">
         <div class="t">{localize(d.name)}</div>

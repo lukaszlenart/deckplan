@@ -67,4 +67,20 @@ describe('importPlan', () => {
     if (!result.ok) return
     expect(result.plan.bulkheads).toEqual({ '0,0,E': 'bulkhead' })
   })
+
+  it('rejects resized pieces that overlap or leave the grid', () => {
+    const overlap = makePlan([
+      { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 2 },
+      { module: 'M1', x: 5, y: 0, r: 0 },
+    ])
+    expect(importPlan(JSON.stringify(overlap))).toEqual({ ok: false, reason: 'invalid' })
+    const off = makePlan([{ module: 'O4', x: 38, y: 0, r: 0, w: 6, h: 2 }])
+    expect(importPlan(JSON.stringify(off))).toEqual({ ok: false, reason: 'invalid' })
+  })
+
+  it('round-trips a resized piece', () => {
+    const plan = makePlan([{ module: 'O4', x: 0, y: 0, r: 1, w: 6, h: 3 }])
+    const back = importPlan(exportPlan(plan))
+    expect(back.ok && back.plan.pieces[0]).toMatchObject({ w: 6, h: 3 })
+  })
 })

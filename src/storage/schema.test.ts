@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { samplePlan } from '../domain/sample'
 import { makePlan } from '../domain/testing'
+import { ZodError } from 'zod'
 import { parsePlan } from './schema'
 
 describe('PlanSchema', () => {
@@ -46,5 +47,30 @@ describe('PlanSchema', () => {
     expect(parsePlan({ ...plan, nextId: 2 }).nextId).toBe(3)
     expect(parsePlan({ ...plan, nextId: 10 }).nextId).toBe(10)
     expect(parsePlan({ ...plan, pieces: [], nextId: 0 }).nextId).toBe(1)
+  })
+
+  it('accepts a size on a resizable room', () => {
+    const plan = makePlan([{ module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 3 }])
+    expect(parsePlan(plan).pieces[0]).toMatchObject({ w: 6, h: 3 })
+  })
+
+  it('rejects bad sizes', () => {
+    const at = (size: { w?: number; h?: number }) =>
+      makePlan([{ module: 'O4', x: 0, y: 0, r: 0, ...size }])
+    expect(() => parsePlan(at({ w: 0, h: 2 }))).toThrow()
+    expect(() => parsePlan(at({ w: 41, h: 2 }))).toThrow()
+    expect(() => parsePlan(at({ w: 6, h: 29 }))).toThrow()
+    expect(() => parsePlan(at({ w: 6 }))).toThrow()
+    expect(() => parsePlan(makePlan([{ module: 'O2', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow()
+    expect(() => parsePlan(makePlan([{ module: 'Z9', x: 0, y: 0, r: 0, w: 3, h: 3 }]))).toThrow(
+      ZodError,
+    )
+  })
+
+  it('caps sizes by the screen size of rotated rooms', () => {
+    const at = (r: 0 | 1, w: number, h: number) => makePlan([{ module: 'O4', x: 0, y: 0, r, w, h }])
+    expect(parsePlan(at(1, 2, 30)).pieces[0]).toMatchObject({ w: 2, h: 30 })
+    expect(() => parsePlan(at(1, 29, 2))).toThrow()
+    expect(() => parsePlan(at(0, 2, 30))).toThrow()
   })
 })

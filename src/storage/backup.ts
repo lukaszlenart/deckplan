@@ -1,4 +1,5 @@
 import { canPlace, pruneBulkheads } from '../domain/analysis'
+import { pieceSize } from '../domain/geometry'
 import type { Plan } from '../domain/types'
 import { migrate } from './migrate'
 import { parsePlan } from './schema'
@@ -25,7 +26,7 @@ export function importPlan(text: string): ImportResult {
   }
   const placeable = plan.pieces.every((p) => {
     const others = { ...plan, pieces: plan.pieces.filter((q) => q.id !== p.id) }
-    return canPlace(others, p.module, p.r, p.x, p.y)
+    return canPlace(others, p.module, p.r, p.x, p.y, undefined, pieceSize(p))
   })
   if (!placeable) return { ok: false, reason: 'invalid' }
   return { ok: true, plan: pruneBulkheads(plan) }

@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'preact/hooks'
-import { edgeCenter, placementOffset, portPoint, shape } from '../domain/geometry'
+import { edgeCenter, isResizable, pieceShape, placementOffset, portPoint } from '../domain/geometry'
 import { GRID } from '../domain/types'
 import {
   beginMoveDrag,
+  beginResizeDrag,
   cellAt,
   moveDrag,
   nearestEdge,
@@ -10,13 +11,17 @@ import {
   rotateDrag,
   type Box,
 } from './pointer'
+import { useT } from '../i18n'
 import { CELL, store, ZOOMS } from './store'
 import { Ghost } from './svg/Ghost'
 import { PlanDrawing } from './svg/PlanDrawing'
 
 const CLICK_SUPPRESS_MS = 50
+/** Smallest on-screen size of the resize grip's hit area. */
+const GRIP_HIT_PX = 32
 
 export function Board() {
+  const t = useT()
   const svgRef = useRef<SVGSVGElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const suppressClick = useRef(false)
@@ -61,6 +66,7 @@ export function Board() {
       if (drop.kind === 'click') {
         if (drag.kind === 'bulkhead') store.toggleBulkheadTool(drag.type)
         else if (drag.kind === 'new') store.togglePending(drag.module)
+        else if (drag.kind === 'resize') suppressNextClick()
         else store.selectPiece(drag.id)
         return
       }
@@ -72,6 +78,7 @@ export function Board() {
         } else store.showToast('toast.dropOnConnection')
       } else if (drop.kind === 'place') store.placePiece(drop.module, drop.r, drop.x, drop.y)
       else if (drop.kind === 'move') store.movePiece(drop.id, drop.x, drop.y, drop.r)
+      else if (drop.kind === 'resize') store.resizePiece(drop.id, drop.w, drop.h)
     }
     const onCancel = () => (store.drag.value = null)
     window.addEventListener('pointermove', onMove, { passive: false })
@@ -104,6 +111,13 @@ export function Board() {
       e.preventDefault()
       suppressNextClick()
       store.selectEdge(edgeEl.dataset.edge)
+      return
+    }
+    const gripEl = target?.closest<SVGElement>('[data-grip]')
+    if (gripEl?.dataset.grip) {
+      e.preventDefault()
+      const piece = store.plan.value.pieces.find((p) => p.id === Number(gripEl.dataset.grip))
+      if (piece) store.drag.value = beginResizeDrag(piece, e)
       return
     }
     const pieceEl = target?.closest<SVGElement>('[data-id]')
@@ -145,7 +159,14 @@ export function Board() {
   const plan = store.plan.value
   const { edges, open } = store.analysis.value
   const z = ZOOMS[store.zoom.value] ?? 1
-  const selected = plan.pieces.find((p) => p.id === store.selected.value)
+  const drag = store.drag.value
+  const selected =
+    drag?.kind === 'resize' ? undefined : plan.pieces.find((p) => p.id === store.selected.value)
+  const gripHit = Math.max(0.7, GRIP_HIT_PX / (CELL * z))
+  const grip =
+    selected && !drag && !store.bulkheadTool.value && isResizable(selected.module)
+      ? pieceShape(selected)
+      : null
   const selectedEdge = store.selectedEdge.value
   const ring = selectedEdge && edges.has(selectedEdge) ? edgeCenter(selectedEdge) : null
 
@@ -196,7 +217,7 @@ export function Board() {
             />
           )}
           {selected &&
-            shape(selected.module, selected.r).cells.map(([x, y]) => (
+            pieceShape(selected).cells.map(([x, y]) => (
               <rect
                 key={`${x},${y}`}
                 x={selected.x + x + 0.04}
@@ -210,6 +231,23 @@ export function Board() {
               />
             ))}
         </g>
+        {selected && grip && (
+          <g class="grip" data-grip={selected.id} role="button" aria-label={t('board.resizeGrip')}>
+            <rect
+              x={selected.x + grip.w - gripHit * 0.75}
+              y={selected.y + grip.h - gripHit * 0.75}
+              width={gripHit}
+              height={gripHit}
+              fill="transparent"
+            />
+            <path
+              d={`M${selected.x + grip.w - 0.08} ${selected.y + grip.h - 0.48}V${selected.y + grip.h - 0.08}H${selected.x + grip.w - 0.48}Z`}
+              fill="var(--bh-door)"
+              stroke="var(--bg)"
+              stroke-width=".04"
+            />
+          </g>
+        )}
         <g id="ghost" pointer-events="none">
           <Ghost />
         </g>

@@ -309,6 +309,10 @@ main {
 #board .door {
   cursor: pointer;
 }
+#board .grip {
+  touch-action: none;
+  cursor: nwse-resize;
+}
 #toast {
   position: fixed;
   left: 50%;

@@ -3,6 +3,7 @@ import {
   beginBulkheadDrag,
   beginMoveDrag,
   beginNewDrag,
+  beginResizeDrag,
   cellAt,
   moveDrag,
   nearestEdge,
@@ -119,5 +120,33 @@ describe('drag reducer', () => {
       type: 'door',
       edge: null,
     })
+  })
+})
+
+describe('resize drag', () => {
+  const hangar = { id: 7, module: 'O4', x: 2, y: 3, r: 0 as const }
+
+  it('tracks the cell under the pointer as the bottom-right corner', () => {
+    let d = beginResizeDrag(hangar, { x: 160, y: 90 })
+    d = moveDrag(d, { x: 180, y: 110 }, [7, 5], null)
+    expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 6, h: 3 })
+  })
+
+  it('clamps to 1×1 above or left of the origin', () => {
+    let d = beginResizeDrag(hangar, { x: 160, y: 90 })
+    d = moveDrag(d, { x: 100, y: 50 }, [0, 0], null)
+    expect(resolveDrop(d)).toEqual({ kind: 'resize', id: 7, w: 1, h: 1 })
+  })
+
+  it('starts at the current screen size of a rotated, resized room', () => {
+    const d = beginResizeDrag({ ...hangar, r: 1, w: 6, h: 3 }, { x: 0, y: 0 })
+    expect(d).toMatchObject({ w: 3, h: 6 })
+  })
+
+  it('cancels off the board, ignores rotation, and is a click when not moved', () => {
+    const d = beginResizeDrag(hangar, { x: 160, y: 90 })
+    expect(rotateDrag(d)).toBe(d)
+    expect(resolveDrop(d)).toEqual({ kind: 'click' })
+    expect(resolveDrop(moveDrag(d, { x: 600, y: 600 }, null, null))).toEqual({ kind: 'cancel' })
   })
 })

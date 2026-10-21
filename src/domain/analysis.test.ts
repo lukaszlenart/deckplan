@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { analyze, bulkheadAt, canPlace, planBounds, pruneBulkheads } from './analysis'
+import { analyze, bulkheadAt, canPlace, occupancy, planBounds, pruneBulkheads } from './analysis'
 import { samplePlan } from './sample'
 import { makePlan } from './testing'
 
@@ -126,5 +126,24 @@ describe('planBounds', () => {
 
   it('returns the whole grid for an empty plan', () => {
     expect(planBounds(makePlan([]))).toEqual({ x: 0, y: 0, w: 40, h: 28 })
+  })
+})
+
+describe('resized pieces', () => {
+  it('a resized room occupies and connects at its new size', () => {
+    const plan = makePlan([
+      { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 3 },
+      { module: 'K1', x: 0, y: 3, r: 0 },
+    ])
+    expect(occupancy(plan).get('5,2')).toBe(1)
+    expect(canPlace(plan, 'M1', 0, 5, 2)).toBe(false)
+    expect(analyze(plan).edges.has('0,2,S')).toBe(true)
+    expect(planBounds(plan, 0)).toEqual({ x: 0, y: 0, w: 6, h: 4 })
+  })
+
+  it('canPlace checks a given size', () => {
+    const plan = makePlan([{ module: 'M1', x: 5, y: 0, r: 0 }])
+    expect(canPlace(plan, 'O4', 0, 0, 0)).toBe(true)
+    expect(canPlace(plan, 'O4', 0, 0, 0, undefined, { w: 6, h: 2 })).toBe(false)
   })
 })

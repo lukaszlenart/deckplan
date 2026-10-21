@@ -24,6 +24,9 @@ export const en = {
   'bulkhead.welded': 'Welded shut',
   'bulkhead.title': '{name} (click to change)',
 
+  'board.size': '{w}×{h}',
+  'board.resizeGrip': 'Resize',
+
   'inspector.connectionRoom': 'room – corridor connection',
   'inspector.connectionCorridor': 'corridor – corridor connection',
   'inspector.placingBulkhead': 'Placing: {name}',

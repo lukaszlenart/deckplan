@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { samplePlan } from '../domain/sample'
+import { makePlan } from '../domain/testing'
 import { LocalStorageRepo, STORAGE_KEY } from '../storage/localStorageRepo'
 import { MemoryStorage } from '../storage/memoryStorage'
 import { importPlan } from '../storage/backup'
@@ -182,5 +183,61 @@ describe('store', () => {
     store.selectEdge('4,8,E')
     store.movePiece(22, 31, 20, 0)
     expect(store.selectedEdge.value).toBeNull()
+  })
+
+  it('resizePiece grows a room, undo restores it, same size is a no-op', () => {
+    const { store } = setup()
+    store.loadPlan(makePlan([{ module: 'O4', x: 0, y: 0, r: 0 }]))
+    expect(store.resizePiece(1, 6, 3)).toBe(true)
+    expect(store.plan.value.pieces[0]).toMatchObject({ w: 6, h: 3 })
+    const before = store.plan.value
+    expect(store.resizePiece(1, 6, 3)).toBe(true)
+    expect(store.plan.value).toBe(before)
+    store.undo()
+    expect(store.plan.value.pieces[0]).not.toHaveProperty('w')
+  })
+
+  it('resizePiece refuses to overlap and stores rotated sizes in the own frame', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan([
+        { module: 'O4', x: 0, y: 0, r: 1 },
+        { module: 'M1', x: 0, y: 6, r: 0 },
+      ]),
+    )
+    expect(store.resizePiece(1, 2, 7)).toBe(false)
+    expect(store.toast.value?.key).toBe('toast.noFitShort')
+    expect(store.resizePiece(1, 3, 5)).toBe(true)
+    expect(store.plan.value.pieces[0]).toMatchObject({ w: 5, h: 3 })
+  })
+
+  it('rotateSelected checks and keeps the resized footprint', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan([
+        { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 2 },
+        { module: 'M1', x: 1, y: 4, r: 0 },
+      ]),
+    )
+    store.selectPiece(1)
+    store.rotateSelected()
+    expect(store.toast.value?.key).toBe('toast.noRotate')
+    store.loadPlan(makePlan([{ module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 2 }]))
+    store.selectPiece(1)
+    store.rotateSelected()
+    expect(store.plan.value.pieces[0]).toMatchObject({ r: 1, w: 6, h: 2 })
+  })
+
+  it('movePiece checks and keeps the resized footprint', () => {
+    const { store } = setup()
+    store.loadPlan(
+      makePlan([
+        { module: 'O4', x: 0, y: 0, r: 0, w: 6, h: 2 },
+        { module: 'M1', x: 15, y: 0, r: 0 },
+      ]),
+    )
+    expect(store.movePiece(1, 10, 0, 0)).toBe(false)
+    expect(store.movePiece(1, 2, 5, 0)).toBe(true)
+    expect(store.plan.value.pieces[0]).toMatchObject({ x: 2, y: 5, w: 6, h: 2 })
   })
 })
