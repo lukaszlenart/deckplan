@@ -1,15 +1,17 @@
 import { moduleDef } from '../../domain/catalogue'
 import { portPoint, type Shape } from '../../domain/geometry'
-import type { Piece } from '../../domain/types'
+import type { Piece, PlacedDoor } from '../../domain/types'
 import { useLocalize } from '../../i18n'
 
 interface Props {
   piece: Pick<Piece, 'module' | 'x' | 'y'>
   shape: Shape
+  /** Board-placed doors cut gaps in the wall. */
+  doors?: readonly PlacedDoor[]
   thumb?: boolean
 }
 
-export function RoomShape({ piece: p, shape: s, thumb = false }: Props) {
+export function RoomShape({ piece: p, shape: s, doors = [], thumb = false }: Props) {
   const localize = useLocalize()
   const d = moduleDef(p.module)
   const cells = new Set(s.cells.map(([x, y]) => `${x},${y}`))
@@ -60,8 +62,8 @@ export function RoomShape({ piece: p, shape: s, thumb = false }: Props) {
           />
         )
       })}
-      {s.ports.map(([x, y, dir]) => {
-        const [X, Y] = portPoint(p.x + x, p.y + y, dir)
+      {doors.map(({ x, y, dir }) => {
+        const [X, Y] = portPoint(x, y, dir)
         const h = dir % 4 === 0
         return (
           <line

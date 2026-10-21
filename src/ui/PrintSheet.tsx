@@ -10,7 +10,12 @@ export function PrintSheet() {
     <section class="print-sheet" aria-hidden="true">
       <h1>{plan.name}</h1>
       <svg xmlns="http://www.w3.org/2000/svg" viewBox={`${x} ${y} ${w} ${h}`}>
-        <PlanDrawing plan={plan} edges={store.analysis.value.edges} idPrefix="print" />
+        <PlanDrawing
+          plan={plan}
+          edges={store.analysis.value.edges}
+          doors={store.analysis.value.doors}
+          idPrefix="print"
+        />
       </svg>
     </section>
   )
