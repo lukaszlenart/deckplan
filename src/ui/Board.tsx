@@ -17,6 +17,8 @@ import { Ghost } from './svg/Ghost'
 import { PlanDrawing } from './svg/PlanDrawing'
 
 const CLICK_SUPPRESS_MS = 50
+/** Smallest on-screen size of the resize grip's hit area. */
+const GRIP_HIT_PX = 32
 
 export function Board() {
   const t = useT()
@@ -64,6 +66,7 @@ export function Board() {
       if (drop.kind === 'click') {
         if (drag.kind === 'bulkhead') store.toggleBulkheadTool(drag.type)
         else if (drag.kind === 'new') store.togglePending(drag.module)
+        else if (drag.kind === 'resize') suppressNextClick()
         else store.selectPiece(drag.id)
         return
       }
@@ -159,6 +162,7 @@ export function Board() {
   const drag = store.drag.value
   const selected =
     drag?.kind === 'resize' ? undefined : plan.pieces.find((p) => p.id === store.selected.value)
+  const gripHit = Math.max(0.7, GRIP_HIT_PX / (CELL * z))
   const grip =
     selected && !drag && !store.bulkheadTool.value && isResizable(selected.module)
       ? pieceShape(selected)
@@ -230,10 +234,10 @@ export function Board() {
         {selected && grip && (
           <g class="grip" data-grip={selected.id} role="button" aria-label={t('board.resizeGrip')}>
             <rect
-              x={selected.x + grip.w - 0.55}
-              y={selected.y + grip.h - 0.55}
-              width=".7"
-              height=".7"
+              x={selected.x + grip.w - gripHit * 0.75}
+              y={selected.y + grip.h - gripHit * 0.75}
+              width={gripHit}
+              height={gripHit}
               fill="transparent"
             />
             <path
